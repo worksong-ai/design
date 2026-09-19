@@ -82,6 +82,8 @@ export const disabledOpacity = 0.35;
  * iOS reads `shadow*`, Android reads `elevation`; both are returned together so
  * a caller spreads one object and gets the right result on each platform.
  */
+import { darkColors } from './colors.js';
+
 export interface Elevation {
   shadowColor: string;
   shadowOpacity: number;
@@ -99,7 +101,7 @@ function makeElevation(level: 0 | 1 | 2 | 3): Elevation {
   } as const;
   const { opacity, radius: r, y, android } = table[level];
   return {
-    shadowColor: '#000000',
+    shadowColor: darkColors.shadow,
     shadowOpacity: opacity,
     shadowRadius: r,
     shadowOffset: { width: 0, height: y },

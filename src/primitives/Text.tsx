@@ -12,7 +12,7 @@
  *   - direction, detected per string, because the product ships Hebrew and a
  *     Hebrew message inside an English conversation must align right on its own.
  */
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Text as RNText, type StyleProp, type TextProps, type TextStyle } from 'react-native';
 
 import { darkColors, type ColorScheme } from '../tokens/colors.js';

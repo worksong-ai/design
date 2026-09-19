@@ -1,0 +1,179 @@
+/**
+ * TextInput.
+ *
+ * Single-line and multiline, labelled, with an error line. Worksong has no text
+ * field primitive at all — its composer re-types RN's component inline with its
+ * own border, padding and placeholder colour, and nothing else in that app has
+ * a labelled field to copy from. Three things that recipe gets wrong, and this
+ * one does not:
+ *
+ *   - **Direction belongs to the string, not the file.** The product ships
+ *     Hebrew, so the field has to flip as the first Hebrew letter lands. An
+ *     empty field borrows the placeholder's direction, because a composer that
+ *     opens left-aligned under a Hebrew prompt reads as broken before a single
+ *     key is pressed.
+ *   - **A red border is invisible to a screen reader.** RN has no
+ *     `aria-invalid` and no `invalid` in `AccessibilityState`, so the error is
+ *     rendered as an `alert` rather than trusted to the colour.
+ *   - **It clips at large Dynamic Type.** The box grows with `fontScale` from
+ *     the same 44pt floor Button holds, and the field caps its own text at the
+ *     body token's multiplier so glyphs and box grow by the same factor.
+ */
+import { useState } from 'react';
+import {
+  StyleSheet,
+  TextInput as RNTextInput,
+  View,
+  type AccessibilityState,
+} from 'react-native';
+
+import { darkColors, type ColorScheme } from '../tokens/colors.js';
+import { radius, size, space } from '../tokens/space.js';
+import { directionStyle, textDirection } from '../tokens/text.js';
+import { maxFontScale, scaledMinHeight, typography, type TypeTokenName } from '../tokens/typography.js';
+import { Text } from './Text.js';
+import { useResolvedFontScale } from './useFontScale.js';
+
+export interface TextInputProps {
+  value: string;
+  onChangeText: (value: string) => void;
+  placeholder?: string;
+  /** Caption above the field. Also the default accessibility label. */
+  label?: string;
+  /** Message below the field. Its presence is what puts the field in error. */
+  error?: string;
+  multiline?: boolean;
+  secureTextEntry?: boolean;
+  autoFocus?: boolean;
+  editable?: boolean;
+  maxLength?: number;
+  scheme?: ColorScheme;
+  testID?: string;
+  /** OS font scale, for the minimum-height calculation. */
+  fontScale?: number;
+  onSubmitEditing?: () => void;
+}
+
+/** The field's own type token. Both the text and the box are sized from it. */
+const FIELD_TYPE: TypeTokenName = 'body';
+
+const MIN_HEIGHT = {
+  /** The same 44pt floor Button holds — a field is tapped before it is typed in. */
+  single: size.touchTarget,
+  /** Two rows, so a composer looks like somewhere a paragraph goes. */
+  multiline: size.row * 2,
+} as const;
+
+/**
+ * There is no `aria-invalid` prop and no `invalid` in `AccessibilityState`, and
+ * RN's `TextInput` rebuilds the state object from five known keys on the way
+ * down, so the flag does not reach the host element either. It is declared
+ * anyway — it is the field's own contract, and it costs nothing the day RN
+ * grows the key — but the announcement users actually get is the `alert` role
+ * on the error line below.
+ */
+type FieldAccessibilityState = AccessibilityState & { invalid?: boolean };
+
+export function TextInput({
+  value,
+  onChangeText,
+  placeholder,
+  label,
+  error,
+  multiline = false,
+  secureTextEntry = false,
+  autoFocus = false,
+  editable = true,
+  maxLength,
+  scheme = darkColors,
+  testID,
+  fontScale,
+  onSubmitEditing,
+}: TextInputProps) {
+  // The prop wins when given (tests pin a scale); otherwise the device decides.
+  const resolvedFontScale = useResolvedFontScale(fontScale);
+  const [focused, setFocused] = useState(false);
+
+  const invalid = error !== undefined && error.length > 0;
+  // Detected from what is in the field, falling back to the placeholder so an
+  // empty Hebrew-prompted field does not sit left-aligned waiting to flip.
+  const direction = textDirection(value.length > 0 ? value : (placeholder ?? ''));
+
+  const state: FieldAccessibilityState = { disabled: !editable, invalid };
+
+  return (
+    <View style={styles.container}>
+      {label === undefined ? null : (
+        <Text variant="caption" color="textSecondary" scheme={scheme} style={styles.label}>
+          {label}
+        </Text>
+      )}
+
+      <RNTextInput
+        accessibilityLabel={label ?? placeholder}
+        accessibilityState={state}
+        testID={testID}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={scheme.textTertiary}
+        multiline={multiline}
+        secureTextEntry={secureTextEntry}
+        autoFocus={autoFocus}
+        editable={editable}
+        maxLength={maxLength}
+        onSubmitEditing={onSubmitEditing}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        // Capped for the same reason Text caps: the box below grows by the
+        // clamped factor, so unbounded glyph growth would overflow it.
+        maxFontSizeMultiplier={maxFontScale[FIELD_TYPE]}
+        style={[
+          styles.input,
+          typography[FIELD_TYPE],
+          directionStyle(direction),
+          {
+            backgroundColor: scheme.surface,
+            borderColor: invalid ? scheme.red : focused ? scheme.focus : scheme.separator,
+            // Dimmed by colour rather than Button's 0.35 opacity: a whole
+            // paragraph at that opacity reads as unreadable, not as read-only.
+            color: editable ? scheme.textPrimary : scheme.textSecondary,
+            minHeight: scaledMinHeight(
+              multiline ? MIN_HEIGHT.multiline : MIN_HEIGHT.single,
+              FIELD_TYPE,
+              resolvedFontScale,
+            ),
+            paddingVertical: multiline ? space[3] : space[2],
+            // Android centres multiline text in the box without this.
+            textAlignVertical: multiline ? 'top' : 'center',
+          },
+        ]}
+      />
+
+      {invalid ? (
+        <Text
+          variant="caption"
+          color="red"
+          scheme={scheme}
+          // With `invalid` stripped upstream, this is the only part a screen
+          // reader announces when the error appears.
+          accessibilityRole="alert"
+          style={styles.error}
+        >
+          {error}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { alignSelf: 'stretch' },
+  label: { marginBottom: space[1] },
+  input: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.md,
+    paddingHorizontal: space[3],
+  },
+  error: { marginTop: space[1] },
+});

@@ -21,6 +21,7 @@ import { darkColors, type ColorScheme } from '../tokens/colors.js';
 import { disabledOpacity, pressedOpacity, radius, size, space } from '../tokens/space.js';
 import { scaledMinHeight, type TypeTokenName } from '../tokens/typography.js';
 import { Text } from './Text.js';
+import { useResolvedFontScale } from './useFontScale.js';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'link';
 export type ButtonSize = 'small' | 'medium' | 'large';
@@ -76,8 +77,10 @@ export function Button({
   testID,
   accessibilityHint,
   style,
-  fontScale = 1,
+  fontScale,
 }: ButtonProps) {
+  // The prop wins when given (tests pin a scale); otherwise the device decides.
+  const resolvedFontScale = useResolvedFontScale(fontScale);
   // A spinner that does not also block presses is how a double-submit ships.
   const inert = disabled || busy;
   const metrics = SIZES[sizeName];
@@ -100,7 +103,7 @@ export function Button({
           borderWidth: variant === 'secondary' || variant === 'ghost' ? StyleSheet.hairlineWidth : 0,
           paddingHorizontal: metrics.paddingH,
           paddingVertical: metrics.paddingV,
-          minHeight: scaledMinHeight(metrics.minHeight, metrics.type, fontScale),
+          minHeight: scaledMinHeight(metrics.minHeight, metrics.type, resolvedFontScale),
           borderRadius: variant === 'link' ? radius.none : radius.full,
           alignSelf: block ? 'stretch' : 'flex-start',
           opacity: inert ? disabledOpacity : pressed ? pressedOpacity : 1,

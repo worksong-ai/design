@@ -63,6 +63,14 @@ export interface ColorScheme {
   focus: string;
   /** Scrim behind a modal or sheet. */
   scrim: string;
+  /**
+   * Drop-shadow colour.
+   *
+   * Black in both schemes — a light theme lowers shadow *opacity*, it does not
+   * tint the shadow. Named anyway so the elevation scale has somewhere to read
+   * it from instead of carrying a literal of its own.
+   */
+  shadow: string;
 }
 
 export const darkColors: ColorScheme = {
@@ -89,6 +97,7 @@ export const darkColors: ColorScheme = {
 
   focus: '#00C752',
   scrim: 'rgba(0, 0, 0, 0.6)',
+  shadow: '#000000',
 };
 
 export const lightColors: ColorScheme = {
@@ -116,6 +125,7 @@ export const lightColors: ColorScheme = {
 
   focus: '#00A344',
   scrim: 'rgba(0, 0, 0, 0.35)',
+  shadow: '#000000',
 };
 
 export type ColorSchemeName = 'light' | 'dark';
