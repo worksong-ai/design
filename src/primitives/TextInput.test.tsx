@@ -205,3 +205,39 @@ describe('TextInput', () => {
     expect(styleOf(screen.getByTestId('off')).color).toBe(darkColors.textSecondary);
   });
 });
+
+describe('field kind', () => {
+  it('defaults to a plain text field that changes nothing', () => {
+    render(<TextInput value="" onChangeText={jest.fn()} testID="f" />);
+    const field = screen.getByTestId('f');
+    expect(field.props.keyboardType).toBe('default');
+    expect(field.props.autoCapitalize).toBe('sentences');
+  });
+
+  it('sets all four email props together, not just the keyboard', () => {
+    // A field that only sets `keyboardType` still autocapitalises, so the
+    // first character of an address is a capital the user deletes by hand.
+    render(<TextInput value="" onChangeText={jest.fn()} kind="email" testID="f" />);
+    const field = screen.getByTestId('f');
+    expect(field.props.keyboardType).toBe('email-address');
+    expect(field.props.autoCapitalize).toBe('none');
+    expect(field.props.autoCorrect).toBe(false);
+    expect(field.props.textContentType).toBe('emailAddress');
+    expect(field.props.autoComplete).toBe('email');
+  });
+
+  it('marks a password field so the keychain offers to fill it', () => {
+    render(<TextInput value="" onChangeText={jest.fn()} kind="password" secureTextEntry testID="f" />);
+    const field = screen.getByTestId('f');
+    expect(field.props.textContentType).toBe('password');
+    expect(field.props.autoComplete).toBe('current-password');
+    expect(field.props.secureTextEntry).toBe(true);
+  });
+
+  it('distinguishes a new password, so the keychain offers to generate one', () => {
+    render(<TextInput value="" onChangeText={jest.fn()} kind="newPassword" secureTextEntry testID="f" />);
+    const field = screen.getByTestId('f');
+    expect(field.props.textContentType).toBe('newPassword');
+    expect(field.props.autoComplete).toBe('new-password');
+  });
+});

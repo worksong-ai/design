@@ -25,6 +25,7 @@ import {
   TextInput as RNTextInput,
   View,
   type AccessibilityState,
+  type TextInputProps as RNTextInputProps,
 } from 'react-native';
 
 import { darkColors, type ColorScheme } from '../tokens/colors.js';
@@ -44,6 +45,16 @@ export interface TextInputProps {
   error?: string;
   multiline?: boolean;
   secureTextEntry?: boolean;
+  /**
+   * Keyboard layout and autofill behaviour.
+   *
+   * Grouped into one prop rather than exposing RN's seven separate ones,
+   * because getting an email field right means setting four of them
+   * consistently and a field that sets three is worse than one that sets none
+   * -- an autocapitalised email that the password manager will not fill is a
+   * field users abandon.
+   */
+  kind?: FieldKind;
   autoFocus?: boolean;
   editable?: boolean;
   maxLength?: number;
@@ -74,6 +85,61 @@ const MIN_HEIGHT = {
  */
 type FieldAccessibilityState = AccessibilityState & { invalid?: boolean };
 
+/**
+ * What a field is for, as one word.
+ *
+ * `text` is the default and changes nothing. The others each set the whole
+ * group of RN props that make a field behave: an email field that
+ * autocapitalises, or a password field with no `textContentType`, are both
+ * things a reviewer notices only after typing into a shipped build.
+ */
+export type FieldKind = 'text' | 'email' | 'password' | 'newPassword';
+
+interface FieldBehaviour {
+  keyboardType: RNTextInputProps['keyboardType'];
+  autoCapitalize: RNTextInputProps['autoCapitalize'];
+  autoCorrect: boolean;
+  textContentType: RNTextInputProps['textContentType'];
+  autoComplete: RNTextInputProps['autoComplete'];
+}
+
+const FIELD_BEHAVIOUR: Record<FieldKind, FieldBehaviour> = {
+  text: {
+    keyboardType: 'default',
+    autoCapitalize: 'sentences',
+    autoCorrect: true,
+    textContentType: 'none',
+    autoComplete: 'off',
+  },
+  email: {
+    keyboardType: 'email-address',
+    // All four matter. Autocapitalisation alone produces "Ada@..." on iOS,
+    // which the server lowercases -- but the user sees a value that looks
+    // wrong while typing and deletes it.
+    autoCapitalize: 'none',
+    autoCorrect: false,
+    textContentType: 'emailAddress',
+    autoComplete: 'email',
+  },
+  password: {
+    keyboardType: 'default',
+    autoCapitalize: 'none',
+    autoCorrect: false,
+    textContentType: 'password',
+    autoComplete: 'current-password',
+  },
+  newPassword: {
+    keyboardType: 'default',
+    autoCapitalize: 'none',
+    autoCorrect: false,
+    // Distinct from `password` so the keychain offers to GENERATE one rather
+    // than to fill the existing one, which is the whole point of the
+    // distinction on iOS.
+    textContentType: 'newPassword',
+    autoComplete: 'new-password',
+  },
+};
+
 export function TextInput({
   value,
   onChangeText,
@@ -82,6 +148,7 @@ export function TextInput({
   error,
   multiline = false,
   secureTextEntry = false,
+  kind = 'text',
   autoFocus = false,
   editable = true,
   maxLength,
@@ -100,6 +167,7 @@ export function TextInput({
   const direction = textDirection(value.length > 0 ? value : (placeholder ?? ''));
 
   const state: FieldAccessibilityState = { disabled: !editable, invalid };
+  const behaviour = FIELD_BEHAVIOUR[kind];
 
   return (
     <View style={styles.container}>
@@ -119,6 +187,11 @@ export function TextInput({
         placeholderTextColor={scheme.textTertiary}
         multiline={multiline}
         secureTextEntry={secureTextEntry}
+        keyboardType={behaviour.keyboardType}
+        autoCapitalize={behaviour.autoCapitalize}
+        autoCorrect={behaviour.autoCorrect}
+        textContentType={behaviour.textContentType}
+        autoComplete={behaviour.autoComplete}
         autoFocus={autoFocus}
         editable={editable}
         maxLength={maxLength}
