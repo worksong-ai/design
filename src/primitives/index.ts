@@ -1,5 +1,6 @@
 export * from './Text.js';
 export * from './Button.js';
+export * from './AppleSignInButton.js';
 export * from './TextInput.js';
 export * from './Card.js';
 export * from './ListRow.js';
