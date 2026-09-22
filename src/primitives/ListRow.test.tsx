@@ -1,10 +1,28 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, type ReactTestInstance } from '@testing-library/react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { darkColors, lightColors } from '../tokens/colors.js';
 import { size } from '../tokens/space.js';
 import { ListRow } from './ListRow.js';
 import { SchemeProvider } from './useScheme.js';
+
+/**
+ * The nearest ancestor named `Pressable`, matched by name rather than by
+ * reference: `@worksong/design`'s compiled `dist` and this test file can
+ * resolve `react-native`'s `Pressable` export to two distinct module
+ * instances under this workspace's hoisting, so `UNSAFE_getByType(Pressable)`
+ * finds nothing even when the real component renders one.
+ */
+function pressableAncestorOf(element: ReactTestInstance): ReactTestInstance {
+  let current: ReactTestInstance | null = element;
+  while (current !== null) {
+    const type = current.type as { displayName?: string; name?: string } | string;
+    const name = typeof type === 'string' ? type : (type.displayName ?? type.name);
+    if (name === 'Pressable') return current;
+    current = current.parent;
+  }
+  throw new Error('no Pressable ancestor found');
+}
 
 /** Flatten RN's array-of-styles into one object. */
 function styleOf(element: { props: { style?: unknown } }): Record<string, unknown> {
@@ -30,6 +48,28 @@ describe('ListRow', () => {
 
     fireEvent.press(screen.getByTestId('r'));
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('wires onLongPress onto the underlying Pressable itself, not just the JSX props', () => {
+    // `getByTestId` resolves to `Pressable`'s rendered HOST node, whose props
+    // are the low-level responder callbacks (`onResponderGrant` etc.)
+    // `Pressable` translates `onLongPress` into internally -- there is no
+    // `onLongPress` key at that level regardless of whether `ListRow` wires
+    // it through, and `fireEvent(el, 'longPress')`'s handler lookup walks up
+    // the whole ancestor chain, so it would find `onLongPress` sitting on
+    // *this test's own* `<ListRow onLongPress={...}>` JSX even if `ListRow`
+    // never forwards it anywhere -- a false green either way. Reading the
+    // `Pressable` COMPOSITE element's own resolved props is the one check
+    // that only passes when `ListRow`'s implementation actually spreads
+    // `onLongPress` onto the `<Pressable>` it renders.
+    const onLongPress = jest.fn();
+    render(<ListRow title="Research bot" onPress={jest.fn()} onLongPress={onLongPress} testID="r" />);
+    expect(pressableAncestorOf(screen.getByTestId('r')).props.onLongPress).toBe(onLongPress);
+  });
+
+  it('omits onLongPress from the Pressable entirely when not given', () => {
+    render(<ListRow title="Research bot" onPress={jest.fn()} testID="r" />);
+    expect(pressableAncestorOf(screen.getByTestId('r')).props.onLongPress).toBeUndefined();
   });
 
   it('is inert with no handler and no button role when onPress is omitted', () => {

@@ -34,6 +34,8 @@ export interface ListRowProps {
   trailing?: ReactNode;
   /** Omit for an inert row; presence of this is what makes the row tappable. */
   onPress?: () => void;
+  /** A per-row context action (#187's pin/favorite menu). Requires `onPress`. */
+  onLongPress?: () => void;
   selected?: boolean;
   /** Paints the title in the red token. Does not block the press. */
   destructive?: boolean;
@@ -52,6 +54,7 @@ export function ListRow({
   leading,
   trailing,
   onPress,
+  onLongPress,
   selected = false,
   destructive = false,
   showChevron = false,
@@ -135,6 +138,7 @@ export function ListRow({
       {...(accessibilityHint === undefined ? {} : { accessibilityHint })}
       testID={testID}
       onPress={onPress}
+      {...(onLongPress === undefined ? {} : { onLongPress })}
       style={({ pressed }) => [styles.row, frame, pressed ? styles.pressed : null]}
     >
       {content}
