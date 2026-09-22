@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { darkColors, lightColors } from '../tokens/colors.js';
 import { size } from '../tokens/space.js';
 import { ListRow } from './ListRow.js';
+import { SchemeProvider } from './useScheme.js';
 
 /** Flatten RN's array-of-styles into one object. */
 function styleOf(element: { props: { style?: unknown } }): Record<string, unknown> {
@@ -140,5 +141,14 @@ describe('ListRow', () => {
 
     expect(styleOf(screen.getByTestId('r')).backgroundColor).toBe(lightColors.surfaceElevated);
     expect(styleOf(screen.getByText('Delete bot')).color).toBe(lightColors.red);
+  });
+
+  it('follows the scheme in force rather than always painting dark', () => {
+    render(
+      <SchemeProvider preference="light">
+        <ListRow title="Research bot" testID="r" />
+      </SchemeProvider>,
+    );
+    expect(styleOf(screen.getByTestId('r')).borderBottomColor).toBe(lightColors.separator);
   });
 });

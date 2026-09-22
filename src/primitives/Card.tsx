@@ -20,7 +20,7 @@
 import { Children, type ReactNode } from 'react';
 import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { darkColors, type ColorScheme } from '../tokens/colors.js';
+import type { ColorScheme } from '../tokens/colors.js';
 import {
   elevation,
   pressedOpacity,
@@ -33,6 +33,7 @@ import {
 import { scaledMinHeight } from '../tokens/typography.js';
 import { Text } from './Text.js';
 import { useResolvedFontScale } from './useFontScale.js';
+import { useResolvedScheme } from './useScheme.js';
 
 export interface CardProps {
   children?: ReactNode;
@@ -70,12 +71,13 @@ export function Card({
   onPress,
   elevation: elevationName = 'none',
   padding = 4,
-  scheme = darkColors,
+  scheme: schemeOverride,
   testID,
   accessibilityLabel,
   style,
   fontScale,
 }: CardProps) {
+  const scheme = useResolvedScheme(schemeOverride);
   // The prop wins when given (tests pin a scale); otherwise the device decides.
   const resolvedFontScale = useResolvedFontScale(fontScale);
   const surface: ViewStyle = {

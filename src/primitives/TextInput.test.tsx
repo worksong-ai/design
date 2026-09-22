@@ -4,6 +4,7 @@ import { darkColors, lightColors } from '../tokens/colors.js';
 import { size } from '../tokens/space.js';
 import { maxFontScale } from '../tokens/typography.js';
 import { TextInput } from './TextInput.js';
+import { SchemeProvider } from './useScheme.js';
 
 /** Flatten RN's array-of-styles into one object. */
 function styleOf(element: { props: { style?: unknown } }): Record<string, unknown> {
@@ -239,5 +240,14 @@ describe('field kind', () => {
     const field = screen.getByTestId('f');
     expect(field.props.textContentType).toBe('newPassword');
     expect(field.props.autoComplete).toBe('new-password');
+  });
+
+  it('follows the scheme in force rather than always painting dark', () => {
+    render(
+      <SchemeProvider preference="light">
+        <TextInput value="" onChangeText={jest.fn()} testID="i" />
+      </SchemeProvider>,
+    );
+    expect(styleOf(screen.getByTestId('i')).borderColor).toBe(lightColors.separator);
   });
 });

@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { darkColors, lightColors } from '../tokens/colors.js';
 import { size } from '../tokens/space.js';
 import { Button } from './Button.js';
+import { SchemeProvider } from './useScheme.js';
 
 /** Flatten RN's array-of-styles into one object. */
 function styleOf(element: { props: { style?: unknown } }): Record<string, unknown> {
@@ -121,5 +122,14 @@ describe('Button', () => {
 
     render(<Button label="A" onPress={jest.fn()} block testID="block" />);
     expect(styleOf(screen.getByTestId('block')).alignSelf).toBe('stretch');
+  });
+
+  it('follows the scheme in force rather than always painting dark', () => {
+    render(
+      <SchemeProvider preference="light">
+        <Button label="Send" onPress={jest.fn()} testID="b" />
+      </SchemeProvider>,
+    );
+    expect(styleOf(screen.getByTestId('b')).backgroundColor).toBe(lightColors.accent);
   });
 });

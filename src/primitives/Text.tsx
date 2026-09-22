@@ -15,9 +15,10 @@
 import type { ReactNode } from 'react';
 import { Text as RNText, type StyleProp, type TextProps, type TextStyle } from 'react-native';
 
-import { darkColors, type ColorScheme } from '../tokens/colors.js';
+import type { ColorScheme } from '../tokens/colors.js';
 import { textDirection, directionStyle, type TextDirection } from '../tokens/text.js';
 import { maxFontScale, typography, type TypeTokenName } from '../tokens/typography.js';
+import { useResolvedScheme } from './useScheme.js';
 
 export interface WSTextProps extends Omit<TextProps, 'style'> {
   /** Type scale token. Defaults to `body`. */
@@ -51,12 +52,13 @@ function textOf(children: ReactNode): string {
 export function Text({
   variant = 'body',
   color,
-  scheme = darkColors,
+  scheme: schemeOverride,
   direction = 'auto',
   style,
   children,
   ...rest
 }: WSTextProps) {
+  const scheme = useResolvedScheme(schemeOverride);
   const resolvedDirection =
     direction === 'auto' ? textDirection(textOf(children)) : direction;
 

@@ -21,11 +21,12 @@
 import type { ReactNode } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
-import { darkColors, type ColorScheme } from '../tokens/colors.js';
+import type { ColorScheme } from '../tokens/colors.js';
 import { radius, size, space } from '../tokens/space.js';
 import { scaledMinHeight } from '../tokens/typography.js';
 import { Text } from './Text.js';
 import { useResolvedFontScale } from './useFontScale.js';
+import { useResolvedScheme } from './useScheme.js';
 
 export interface SheetProps {
   visible: boolean;
@@ -45,11 +46,12 @@ export function Sheet({
   onClose,
   title,
   children,
-  scheme = darkColors,
+  scheme: schemeOverride,
   testID,
   dismissOnBackdropPress = true,
   fontScale,
 }: SheetProps) {
+  const scheme = useResolvedScheme(schemeOverride);
   // The prop wins when given (tests pin a scale); otherwise the device decides.
   const resolvedFontScale = useResolvedFontScale(fontScale);
   return (

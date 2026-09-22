@@ -18,10 +18,11 @@
  */
 import { StyleSheet, View } from 'react-native';
 
-import { contrastRatio, darkColors, type ColorScheme } from '../tokens/colors.js';
+import { contrastRatio, type ColorScheme } from '../tokens/colors.js';
 import { radius, size } from '../tokens/space.js';
 import type { TypeTokenName } from '../tokens/typography.js';
 import { Text } from './Text.js';
+import { useResolvedScheme } from './useScheme.js';
 
 /** Mirrors `AVATAR_SHAPES` in the bot contract, which this package cannot import. */
 export type AvatarShape = 'circle' | 'squircle' | 'hexagon' | 'shield' | 'diamond';
@@ -99,9 +100,10 @@ export function Avatar({
   color,
   shape = 'circle',
   size: sizeName = 'medium',
-  scheme = darkColors,
+  scheme: schemeOverride,
   testID,
 }: AvatarProps) {
+  const scheme = useResolvedScheme(schemeOverride);
   const metrics = SIZES[sizeName];
   const fill = color ?? scheme.accent;
 

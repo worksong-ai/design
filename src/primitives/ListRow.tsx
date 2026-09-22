@@ -18,11 +18,12 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 
-import { darkColors, type ColorScheme } from '../tokens/colors.js';
+import type { ColorScheme } from '../tokens/colors.js';
 import { pressedOpacity, screenPadding, size, space } from '../tokens/space.js';
 import { scaledMinHeight } from '../tokens/typography.js';
 import { Text } from './Text.js';
 import { useResolvedFontScale } from './useFontScale.js';
+import { useResolvedScheme } from './useScheme.js';
 
 export interface ListRowProps {
   title: string;
@@ -54,11 +55,12 @@ export function ListRow({
   selected = false,
   destructive = false,
   showChevron = false,
-  scheme = darkColors,
+  scheme: schemeOverride,
   testID,
   accessibilityHint,
   fontScale,
 }: ListRowProps) {
+  const scheme = useResolvedScheme(schemeOverride);
   // The prop wins when given (tests pin a scale); otherwise the device decides.
   const resolvedFontScale = useResolvedFontScale(fontScale);
   const frame: ViewStyle = {

@@ -28,12 +28,13 @@ import {
   type TextInputProps as RNTextInputProps,
 } from 'react-native';
 
-import { darkColors, type ColorScheme } from '../tokens/colors.js';
+import type { ColorScheme } from '../tokens/colors.js';
 import { radius, size, space } from '../tokens/space.js';
 import { directionStyle, textDirection } from '../tokens/text.js';
 import { maxFontScale, scaledMinHeight, typography, type TypeTokenName } from '../tokens/typography.js';
 import { Text } from './Text.js';
 import { useResolvedFontScale } from './useFontScale.js';
+import { useResolvedScheme } from './useScheme.js';
 
 export interface TextInputProps {
   value: string;
@@ -44,6 +45,16 @@ export interface TextInputProps {
   /** Message below the field. Its presence is what puts the field in error. */
   error?: string;
   multiline?: boolean;
+  /**
+   * A pill rather than a rounded rectangle, and one row tall to begin with.
+   *
+   * The composer's shape, and only the composer's: a message field sits in a
+   * bar next to circular controls, where a 10pt-radius box next to a 44pt
+   * circle reads as two design languages in one row. It stays `multiline` —
+   * the field still grows as a message does — but starts at one row instead of
+   * two, because the bar it lives in must not eat the transcript.
+   */
+  pill?: boolean;
   secureTextEntry?: boolean;
   /**
    * Keyboard layout and autofill behaviour.
@@ -147,16 +158,18 @@ export function TextInput({
   label,
   error,
   multiline = false,
+  pill = false,
   secureTextEntry = false,
   kind = 'text',
   autoFocus = false,
   editable = true,
   maxLength,
-  scheme = darkColors,
+  scheme: schemeOverride,
   testID,
   fontScale,
   onSubmitEditing,
 }: TextInputProps) {
+  const scheme = useResolvedScheme(schemeOverride);
   // The prop wins when given (tests pin a scale); otherwise the device decides.
   const resolvedFontScale = useResolvedFontScale(fontScale);
   const [focused, setFocused] = useState(false);
@@ -212,13 +225,18 @@ export function TextInput({
             // paragraph at that opacity reads as unreadable, not as read-only.
             color: editable ? scheme.textPrimary : scheme.textSecondary,
             minHeight: scaledMinHeight(
-              multiline ? MIN_HEIGHT.multiline : MIN_HEIGHT.single,
+              // A pill starts at one row however `multiline` is set: it grows
+              // with the message, but a composer that opens two rows tall eats
+              // the transcript behind it before a word is typed.
+              multiline && !pill ? MIN_HEIGHT.multiline : MIN_HEIGHT.single,
               FIELD_TYPE,
               resolvedFontScale,
             ),
-            paddingVertical: multiline ? space[3] : space[2],
+            borderRadius: pill ? radius.full : radius.md,
+            paddingHorizontal: pill ? space[4] : space[3],
+            paddingVertical: multiline && !pill ? space[3] : space[2],
             // Android centres multiline text in the box without this.
-            textAlignVertical: multiline ? 'top' : 'center',
+            textAlignVertical: multiline && !pill ? 'top' : 'center',
           },
         ]}
       />
@@ -243,10 +261,9 @@ export function TextInput({
 const styles = StyleSheet.create({
   container: { alignSelf: 'stretch' },
   label: { marginBottom: space[1] },
-  input: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.md,
-    paddingHorizontal: space[3],
-  },
+  // Radius and horizontal padding are set inline: they differ between the
+  // default field and the pill, and splitting one decision across two places is
+  // how the two variants drift.
+  input: { borderWidth: StyleSheet.hairlineWidth },
   error: { marginTop: space[1] },
 });

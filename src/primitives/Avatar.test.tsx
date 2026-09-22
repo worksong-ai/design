@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react-native';
 import { contrastRatio, darkColors, lightColors } from '../tokens/colors.js';
 import { radius, size } from '../tokens/space.js';
 import { Avatar, initialsFrom } from './Avatar.js';
+import { SchemeProvider } from './useScheme.js';
 
 /** Flatten RN's array-of-styles into one object. */
 function styleOf(element: { props: { style?: unknown } }): Record<string, unknown> {
@@ -132,5 +133,14 @@ describe('Avatar', () => {
   it('renders a placeholder rather than an empty badge for a nameless bot', () => {
     render(<Avatar name="   " testID="a" />);
     expect(screen.getByText('?')).toBeTruthy();
+  });
+
+  it('follows the scheme in force rather than always painting dark', () => {
+    render(
+      <SchemeProvider preference="light">
+        <Avatar name="Ada Lovelace" testID="a" />
+      </SchemeProvider>,
+    );
+    expect(styleOf(screen.getByTestId('a')).backgroundColor).toBe(lightColors.accent);
   });
 });

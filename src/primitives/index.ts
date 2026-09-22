@@ -8,3 +8,5 @@ export * from './Badge.js';
 export * from './Avatar.js';
 export * from './Sheet.js';
 export * from './useFontScale.js';
+export * from './useScheme.js';
+export * from './IconButton.js';

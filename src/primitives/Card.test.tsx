@@ -4,6 +4,7 @@ import { darkColors, lightColors } from '../tokens/colors.js';
 import { elevation, radius, size, space } from '../tokens/space.js';
 import { Card } from './Card.js';
 import { Text } from './Text.js';
+import { SchemeProvider } from './useScheme.js';
 
 /** Flatten RN's array-of-styles into one object. */
 function styleOf(element: { props: { style?: unknown } }): Record<string, unknown> {
@@ -218,5 +219,16 @@ describe('Card', () => {
       </Card>,
     );
     expect(styleOf(screen.getByTestId('c')).borderRadius).toBe(radius.full);
+  });
+
+  it('follows the scheme in force rather than always painting dark', () => {
+    render(
+      <SchemeProvider preference="light">
+        <Card testID="c">
+          <Text>Body</Text>
+        </Card>
+      </SchemeProvider>,
+    );
+    expect(styleOf(screen.getByTestId('c')).backgroundColor).toBe(lightColors.surface);
   });
 });

@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react-native';
 import { darkColors, lightColors, statusColor } from '../tokens/colors.js';
 import { radius } from '../tokens/space.js';
 import { Badge, type BadgeTone } from './Badge.js';
+import { SchemeProvider } from './useScheme.js';
 
 /** Flatten RN's array-of-styles into one object. */
 function styleOf(element: { props: { style?: unknown } }): Record<string, unknown> {
@@ -109,5 +110,14 @@ describe('Badge', () => {
   it('detects direction from the label, because statuses arrive translated', () => {
     render(<Badge label="ממתין" tone="warning" />);
     expect(styleOf(screen.getByText('ממתין')).textAlign).toBe('right');
+  });
+
+  it('follows the scheme in force rather than always painting dark', () => {
+    render(
+      <SchemeProvider preference="light">
+        <Badge label="Live" testID="b" />
+      </SchemeProvider>,
+    );
+    expect(styleOf(screen.getByTestId('b')).backgroundColor).toBe(lightColors.surface);
   });
 });

@@ -17,11 +17,12 @@
  */
 import { ActivityIndicator, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { darkColors, type ColorScheme } from '../tokens/colors.js';
+import type { ColorScheme } from '../tokens/colors.js';
 import { disabledOpacity, pressedOpacity, radius, size, space } from '../tokens/space.js';
 import { scaledMinHeight, type TypeTokenName } from '../tokens/typography.js';
 import { Text } from './Text.js';
 import { useResolvedFontScale } from './useFontScale.js';
+import { useResolvedScheme } from './useScheme.js';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'link';
 export type ButtonSize = 'small' | 'medium' | 'large';
@@ -73,12 +74,13 @@ export function Button({
   disabled = false,
   busy = false,
   block = false,
-  scheme = darkColors,
+  scheme: schemeOverride,
   testID,
   accessibilityHint,
   style,
   fontScale,
 }: ButtonProps) {
+  const scheme = useResolvedScheme(schemeOverride);
   // The prop wins when given (tests pin a scale); otherwise the device decides.
   const resolvedFontScale = useResolvedFontScale(fontScale);
   // A spinner that does not also block presses is how a double-submit ships.

@@ -4,6 +4,7 @@ import { darkColors, lightColors } from '../tokens/colors.js';
 import { radius, size } from '../tokens/space.js';
 import { Sheet } from './Sheet.js';
 import { Text } from './Text.js';
+import { SchemeProvider } from './useScheme.js';
 
 /** Flatten RN's array-of-styles into one object. */
 function styleOf(element: { props: { style?: unknown } }): Record<string, unknown> {
@@ -213,5 +214,17 @@ describe('Sheet', () => {
 
     expect(normal).toBeGreaterThanOrEqual(size.touchTarget);
     expect(large).toBeGreaterThan(normal);
+  });
+
+  it('follows the scheme in force rather than always painting dark', () => {
+    render(
+      <SchemeProvider preference="light">
+        <Sheet visible onClose={jest.fn()} testID="s">
+          <Text>body</Text>
+        </Sheet>
+      </SchemeProvider>,
+    );
+    expect(styleOf(screen.getByTestId('s')).backgroundColor).toBe(lightColors.scrim);
+    expect(styleOf(screen.getByTestId('sheet-panel')).backgroundColor).toBe(lightColors.surface);
   });
 });

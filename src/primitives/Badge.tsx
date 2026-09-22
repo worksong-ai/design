@@ -24,11 +24,12 @@
  */
 import { StyleSheet, View } from 'react-native';
 
-import { darkColors, statusColor, type ColorScheme } from '../tokens/colors.js';
+import { statusColor, type ColorScheme } from '../tokens/colors.js';
 import { radius, space } from '../tokens/space.js';
 import { scaledMinHeight } from '../tokens/typography.js';
 import { Text } from './Text.js';
 import { useResolvedFontScale } from './useFontScale.js';
+import { useResolvedScheme } from './useScheme.js';
 
 export type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'info';
 
@@ -95,10 +96,11 @@ export function Badge({
   label,
   tone = 'neutral',
   status,
-  scheme = darkColors,
+  scheme: schemeOverride,
   testID,
   fontScale,
 }: BadgeProps) {
+  const scheme = useResolvedScheme(schemeOverride);
   // The prop wins when given (tests pin a scale); otherwise the device decides.
   const resolvedFontScale = useResolvedFontScale(fontScale);
   // `status` wins: it is the value the row's dot is also drawn from.

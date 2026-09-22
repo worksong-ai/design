@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react-native';
 import { darkColors, lightColors } from '../tokens/colors.js';
 import { maxFontScale, typography } from '../tokens/typography.js';
 import { Text } from './Text.js';
+import { SchemeProvider } from './useScheme.js';
 
 function styleOf(element: { props: { style?: unknown } }): Record<string, unknown> {
   const flatten = (value: unknown): Record<string, unknown> => {
@@ -106,5 +107,14 @@ describe('Text', () => {
   it('forwards arbitrary Text props', () => {
     render(<Text numberOfLines={2} testID="t">hi</Text>);
     expect(screen.getByTestId('t').props.numberOfLines).toBe(2);
+  });
+
+  it('follows the scheme in force rather than always painting dark', () => {
+    render(
+      <SchemeProvider preference="light">
+        <Text>hi</Text>
+      </SchemeProvider>,
+    );
+    expect(styleOf(screen.getByText('hi')).color).toBe(lightColors.textPrimary);
   });
 });
