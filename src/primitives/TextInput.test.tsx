@@ -242,6 +242,15 @@ describe('field kind', () => {
     expect(field.props.autoComplete).toBe('new-password');
   });
 
+  it('marks an emailed code as a one-time code, so iOS offers it from Mail', () => {
+    render(<TextInput value="" onChangeText={jest.fn()} kind="oneTimeCode" testID="f" />);
+    const field = screen.getByTestId('f');
+    expect(field.props.keyboardType).toBe('number-pad');
+    expect(field.props.textContentType).toBe('oneTimeCode');
+    expect(field.props.autoComplete).toBe('one-time-code');
+    expect(field.props.autoCorrect).toBe(false);
+  });
+
   it('follows the scheme in force rather than always painting dark', () => {
     render(
       <SchemeProvider preference="light">

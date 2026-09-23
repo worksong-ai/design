@@ -104,7 +104,7 @@ type FieldAccessibilityState = AccessibilityState & { invalid?: boolean };
  * autocapitalises, or a password field with no `textContentType`, are both
  * things a reviewer notices only after typing into a shipped build.
  */
-export type FieldKind = 'text' | 'email' | 'password' | 'newPassword';
+export type FieldKind = 'text' | 'email' | 'password' | 'newPassword' | 'oneTimeCode';
 
 interface FieldBehaviour {
   keyboardType: RNTextInputProps['keyboardType'];
@@ -148,6 +148,15 @@ const FIELD_BEHAVIOUR: Record<FieldKind, FieldBehaviour> = {
     // distinction on iOS.
     textContentType: 'newPassword',
     autoComplete: 'new-password',
+  },
+  oneTimeCode: {
+    // `oneTimeCode` is what makes iOS offer the code from Mail/Messages above
+    // the keyboard; a number pad because the code is digits only.
+    keyboardType: 'number-pad',
+    autoCapitalize: 'none',
+    autoCorrect: false,
+    textContentType: 'oneTimeCode',
+    autoComplete: 'one-time-code',
   },
 };
 
