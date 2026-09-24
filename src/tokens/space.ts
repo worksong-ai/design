@@ -58,6 +58,8 @@ export const size = {
   iconLarge: 24,
   avatar: 40,
   avatarSmall: 28,
+  /** A details page's identity header (#212) — the one place an entity is the subject. */
+  avatarLarge: 64,
 } as const;
 
 export type SizeToken = keyof typeof size;

@@ -26,7 +26,7 @@ import { useResolvedScheme } from './useScheme.js';
 
 /** Mirrors `AVATAR_SHAPES` in the bot contract, which this package cannot import. */
 export type AvatarShape = 'circle' | 'squircle' | 'hexagon' | 'shield' | 'diamond';
-export type AvatarSize = 'small' | 'medium';
+export type AvatarSize = 'small' | 'medium' | 'large';
 
 export interface AvatarProps {
   /** Full name. The badge shows its initials and is labelled with the whole thing. */
@@ -44,6 +44,9 @@ const SIZES: Record<AvatarSize, { diameter: number; type: TypeTokenName }> = {
   // that rule lands on 11 and 15, which are exactly `tiny` and `callout`.
   small: { diameter: size.avatarSmall, type: 'tiny' },
   medium: { diameter: size.avatar, type: 'callout' },
+  // 0.38 × 64 ≈ 24; `title` (22) is the nearest token and keeps two initials
+  // inside the badge at the largest font scale `title` allows.
+  large: { diameter: size.avatarLarge, type: 'title' },
 };
 
 const SHAPE_RADIUS: Record<AvatarShape, number> = {

@@ -83,6 +83,7 @@ describe('Avatar', () => {
   it.each([
     ['small', size.avatarSmall],
     ['medium', size.avatar],
+    ['large', size.avatarLarge],
   ] as const)('draws size %s square at its token diameter', (avatarSize, expected) => {
     render(<Avatar name="Ada Lovelace" size={avatarSize} testID="a" />);
     const style = styleOf(screen.getByTestId('a'));
