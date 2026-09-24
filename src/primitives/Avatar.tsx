@@ -16,7 +16,8 @@
  *     because the bot's name always sits beside it — true of that layout, not
  *     something a shared primitive can assume of every caller.
  */
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Image, StyleSheet, View } from 'react-native';
 
 import { contrastRatio, type ColorScheme } from '../tokens/colors.js';
 import { radius, size } from '../tokens/space.js';
@@ -35,6 +36,14 @@ export interface AvatarProps {
   color?: string;
   shape?: AvatarShape;
   size?: AvatarSize;
+  /**
+   * An uploaded picture (#192), as a URI `Image` can draw — in this app a
+   * local `file://` copy, because the bytes need a bearer to fetch. Drawn in
+   * place of the initials and clipped to `shape`. Absent, null, or failing to
+   * load, the generated badge is shown instead: a broken picture must never
+   * blank the row it identifies.
+   */
+  imageUri?: string | null;
   scheme?: ColorScheme;
   testID?: string;
 }
@@ -103,12 +112,16 @@ export function Avatar({
   color,
   shape = 'circle',
   size: sizeName = 'medium',
+  imageUri = null,
   scheme: schemeOverride,
   testID,
 }: AvatarProps) {
   const scheme = useResolvedScheme(schemeOverride);
   const metrics = SIZES[sizeName];
   const fill = color ?? scheme.accent;
+  // Remembered per URI, so a new picture gets its own chance to load.
+  const [failedUri, setFailedUri] = useState<string | null>(null);
+  const showImage = imageUri !== null && imageUri.length > 0 && failedUri !== imageUri;
 
   return (
     <View
@@ -128,6 +141,17 @@ export function Avatar({
         },
       ]}
     >
+      {showImage ? (
+        <Image
+          source={{ uri: imageUri }}
+          style={{ width: metrics.diameter, height: metrics.diameter }}
+          resizeMode="cover"
+          onError={() => setFailedUri(imageUri)}
+          // No label of its own: the container is `accessible`, so it is one
+          // element named for the bot and the picture is part of it.
+          testID={testID === undefined ? undefined : `${testID}-image`}
+        />
+      ) : (
       <Text
         variant={metrics.type}
         color={labelColor(fill, scheme)}
@@ -144,6 +168,7 @@ export function Avatar({
       >
         {initialsFrom(name)}
       </Text>
+      )}
     </View>
   );
 }

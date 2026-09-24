@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { contrastRatio, darkColors, lightColors } from '../tokens/colors.js';
 import { radius, size } from '../tokens/space.js';
@@ -134,6 +134,31 @@ describe('Avatar', () => {
   it('renders a placeholder rather than an empty badge for a nameless bot', () => {
     render(<Avatar name="   " testID="a" />);
     expect(screen.getByText('?')).toBeTruthy();
+  });
+
+  describe('uploaded image (#192)', () => {
+    it('draws the picture in place of the initials, clipped to the shape', () => {
+      render(<Avatar name="Ada Lovelace" imageUri="file:///cache/logo.img" shape="squircle" testID="a" />);
+      const image = screen.getByTestId('a-image');
+      expect(image.props.source).toEqual({ uri: 'file:///cache/logo.img' });
+      expect(screen.queryByText('AL')).toBeNull();
+      expect(styleOf(screen.getByTestId('a')).borderRadius).toBe(radius.md);
+      // Still one element named for the bot.
+      expect(screen.getByTestId('a').props.accessibilityLabel).toBe('Ada Lovelace');
+    });
+
+    it('falls back to the generated badge when the picture fails to load', () => {
+      render(<Avatar name="Ada Lovelace" imageUri="file:///cache/broken.img" testID="a" />);
+      fireEvent(screen.getByTestId('a-image'), 'error');
+      expect(screen.queryByTestId('a-image')).toBeNull();
+      expect(screen.getByText('AL')).toBeTruthy();
+    });
+
+    it('uses the generated badge when there is no picture', () => {
+      render(<Avatar name="Ada Lovelace" imageUri={null} testID="a" />);
+      expect(screen.queryByTestId('a-image')).toBeNull();
+      expect(screen.getByText('AL')).toBeTruthy();
+    });
   });
 
   it('follows the scheme in force rather than always painting dark', () => {
