@@ -44,6 +44,18 @@ export interface ListRowProps {
   scheme?: ColorScheme;
   testID?: string;
   accessibilityHint?: string;
+  /**
+   * Overrides the spoken label, which is otherwise the title and subtitle. For
+   * a row whose visible title leans on context the screen reader does not have
+   * -- "Pin" in a sheet headed "Ada" is read as "Pin, Ada" (#207).
+   */
+  accessibilityLabel?: string;
+  /**
+   * VoiceOver custom actions -- the accessible stand-in for a long-press or a
+   * swipe, which assistive-tech users cannot perform reliably (#207).
+   */
+  accessibilityActions?: ReadonlyArray<{ name: string; label: string }>;
+  onAccessibilityAction?: (actionName: string) => void;
   /** OS font scale, for the minimum-height calculation. */
   fontScale?: number;
 }
@@ -61,6 +73,9 @@ export function ListRow({
   scheme: schemeOverride,
   testID,
   accessibilityHint,
+  accessibilityLabel,
+  accessibilityActions,
+  onAccessibilityAction,
   fontScale,
 }: ListRowProps) {
   const scheme = useResolvedScheme(schemeOverride);
@@ -134,8 +149,15 @@ export function ListRow({
       accessibilityState={{ selected }}
       // Explicit, so the subtitle is read as part of the row rather than as a
       // second stop, and so the chevron cannot leak into the announcement.
-      accessibilityLabel={subtitle === undefined ? title : `${title}, ${subtitle}`}
+      accessibilityLabel={accessibilityLabel ?? (subtitle === undefined ? title : `${title}, ${subtitle}`)}
       {...(accessibilityHint === undefined ? {} : { accessibilityHint })}
+      {...(accessibilityActions === undefined || onAccessibilityAction === undefined
+        ? {}
+        : {
+            accessibilityActions: [...accessibilityActions],
+            onAccessibilityAction: (event: { nativeEvent: { actionName: string } }) =>
+              onAccessibilityAction(event.nativeEvent.actionName),
+          })}
       testID={testID}
       onPress={onPress}
       {...(onLongPress === undefined ? {} : { onLongPress })}

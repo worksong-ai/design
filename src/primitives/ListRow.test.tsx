@@ -67,6 +67,28 @@ describe('ListRow', () => {
     expect(pressableAncestorOf(screen.getByTestId('r')).props.onLongPress).toBe(onLongPress);
   });
 
+  it('lets the caller override the spoken label (#207)', () => {
+    render(<ListRow title="Pin" accessibilityLabel="Pin Ada" onPress={jest.fn()} testID="r" />);
+    expect(screen.getByTestId('r').props.accessibilityLabel).toBe('Pin Ada');
+  });
+
+  it('exposes custom accessibility actions and reports which one ran (#207)', () => {
+    const onAction = jest.fn();
+    render(
+      <ListRow
+        title="Ada"
+        onPress={jest.fn()}
+        accessibilityActions={[{ name: 'quickActions', label: 'Quick actions' }]}
+        onAccessibilityAction={onAction}
+        testID="r"
+      />,
+    );
+    const row = screen.getByTestId('r');
+    expect(row.props.accessibilityActions).toEqual([{ name: 'quickActions', label: 'Quick actions' }]);
+    fireEvent(row, 'accessibilityAction', { nativeEvent: { actionName: 'quickActions' } });
+    expect(onAction).toHaveBeenCalledWith('quickActions');
+  });
+
   it('omits onLongPress from the Pressable entirely when not given', () => {
     render(<ListRow title="Research bot" onPress={jest.fn()} testID="r" />);
     expect(pressableAncestorOf(screen.getByTestId('r')).props.onLongPress).toBeUndefined();
