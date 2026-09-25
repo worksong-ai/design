@@ -72,6 +72,14 @@ describe('Badge', () => {
     expect(styleOf(screen.getByTestId('b')).borderColor).toBe(expected);
   });
 
+  it('says what a coloured tone means, and nothing for neutral, which means nothing', () => {
+    render(<Badge label="failed" status="failed" testID="f" />);
+    expect(screen.getByTestId('f').props.accessibilityLabel).toBe('failed, error');
+    screen.unmount();
+    render(<Badge label="3 granted" testID="n" />);
+    expect(screen.getByTestId('n').props.accessibilityLabel).toBe('3 granted');
+  });
+
   it('falls back to the info colour for a status nobody has mapped', () => {
     // Deliberate: an unclassified status is informational, and colouring it red
     // would invent a failure the API never reported.

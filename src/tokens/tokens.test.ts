@@ -86,6 +86,9 @@ describe('statusColor', () => {
     ['pending', 'yellow'],
     ['paused', 'yellow'],
     ['failed', 'red'],
+    // A run's `cancelled` also covers a policy block or an expired approval,
+    // so the shared table keeps it red; Tasks, where it only ever means the
+    // person pressed Stop, override it (#214).
     ['cancelled', 'red'],
     ['denied', 'red'],
   ];

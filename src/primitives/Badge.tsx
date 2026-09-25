@@ -113,7 +113,9 @@ export function Badge({
       // as a stray word in the middle of a row.
       accessible
       accessibilityRole="text"
-      accessibilityLabel={`${label}, ${TONE_MEANING[resolvedTone]}`}
+      // Neutral carries no meaning to say: its colour signals nothing, so
+      // "…, neutral" was only noise after the label.
+      accessibilityLabel={resolvedTone === 'neutral' ? label : `${label}, ${TONE_MEANING[resolvedTone]}`}
       testID={testID}
       style={[
         styles.pill,
