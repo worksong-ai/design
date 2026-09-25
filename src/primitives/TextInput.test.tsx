@@ -1,4 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { createRef } from 'react';
+import type { TextInput as RNTextInput } from 'react-native';
 
 import { darkColors, lightColors } from '../tokens/colors.js';
 import { size } from '../tokens/space.js';
@@ -265,5 +267,28 @@ describe('field kind', () => {
       </SchemeProvider>,
     );
     expect(styleOf(screen.getByTestId('i')).borderColor).toBe(lightColors.separator);
+  });
+});
+
+describe('Return moves to the next field', () => {
+  it('labels Return with the given returnKeyType and keeps the keyboard up for "next"', () => {
+    render(<TextInput value="" onChangeText={jest.fn()} returnKeyType="next" testID="i" />);
+    const field = screen.getByTestId('i');
+    expect(field.props.returnKeyType).toBe('next');
+    // Blurring on submit would drop the keyboard and bring it back as the
+    // next field takes focus: a flicker, and a layout jump on every field.
+    expect(field.props.submitBehavior).toBe('submit');
+  });
+
+  it('leaves Return alone when none is given', () => {
+    render(<TextInput value="" onChangeText={jest.fn()} testID="i" />);
+    expect(screen.getByTestId('i').props.returnKeyType).toBeUndefined();
+    expect(screen.getByTestId('i').props.submitBehavior).toBeUndefined();
+  });
+
+  it('hands the native field to inputRef, so a screen can focus it', () => {
+    const inputRef = createRef<RNTextInput>();
+    render(<TextInput value="" onChangeText={jest.fn()} inputRef={inputRef} testID="i" />);
+    expect(typeof inputRef.current?.focus).toBe('function');
   });
 });

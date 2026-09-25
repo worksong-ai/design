@@ -19,7 +19,7 @@
  *     the same 44pt floor Button holds, and the field caps its own text at the
  *     body token's multiplier so glyphs and box grow by the same factor.
  */
-import { useState } from 'react';
+import { useState, type Ref } from 'react';
 import {
   StyleSheet,
   TextInput as RNTextInput,
@@ -79,6 +79,14 @@ export interface TextInputProps {
    * button under it clear of the keyboard; the focus ring is handled here.
    */
   onFocus?: () => void;
+  /**
+   * What Return says and does. `next` keeps the keyboard up on submit, so a
+   * form's `onSubmitEditing` can move focus to the following field (through
+   * that field's `inputRef`) without the keyboard dropping and coming back.
+   */
+  returnKeyType?: 'next' | 'done' | 'go' | 'send';
+  /** The native field, for a screen that moves focus to it. */
+  inputRef?: Ref<RNTextInput>;
 }
 
 /** The field's own type token. Both the text and the box are sized from it. */
@@ -183,6 +191,8 @@ export function TextInput({
   fontScale,
   onSubmitEditing,
   onFocus,
+  returnKeyType,
+  inputRef,
 }: TextInputProps) {
   const scheme = useResolvedScheme(schemeOverride);
   // The prop wins when given (tests pin a scale); otherwise the device decides.
@@ -224,6 +234,9 @@ export function TextInput({
         editable={editable}
         maxLength={maxLength}
         onSubmitEditing={onSubmitEditing}
+        ref={inputRef}
+        {...(returnKeyType === undefined ? {} : { returnKeyType })}
+        {...(returnKeyType === 'next' ? { submitBehavior: 'submit' as const } : {})}
         onFocus={() => {
           setFocused(true);
           onFocus?.();
