@@ -34,6 +34,13 @@ describe('TextInput', () => {
     expect(screen.getByText('Required')).toBeTruthy();
   });
 
+  it('reports focus, so a screen can scroll the field and its action above the keyboard', () => {
+    const onFocus = jest.fn();
+    render(<TextInput value="" onChangeText={jest.fn()} onFocus={onFocus} testID="i" />);
+    fireEvent(screen.getByTestId('i'), 'focus');
+    expect(onFocus).toHaveBeenCalledTimes(1);
+  });
+
   it('renders neither line when neither is given', () => {
     render(<TextInput value="x" onChangeText={jest.fn()} testID="i" />);
     expect(screen.queryByText('Required')).toBeNull();

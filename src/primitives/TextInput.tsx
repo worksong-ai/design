@@ -74,6 +74,11 @@ export interface TextInputProps {
   /** OS font scale, for the minimum-height calculation. */
   fontScale?: number;
   onSubmitEditing?: () => void;
+  /**
+   * The field took focus. For a screen that has to scroll the field *and* the
+   * button under it clear of the keyboard; the focus ring is handled here.
+   */
+  onFocus?: () => void;
 }
 
 /** The field's own type token. Both the text and the box are sized from it. */
@@ -177,6 +182,7 @@ export function TextInput({
   testID,
   fontScale,
   onSubmitEditing,
+  onFocus,
 }: TextInputProps) {
   const scheme = useResolvedScheme(schemeOverride);
   // The prop wins when given (tests pin a scale); otherwise the device decides.
@@ -218,7 +224,10 @@ export function TextInput({
         editable={editable}
         maxLength={maxLength}
         onSubmitEditing={onSubmitEditing}
-        onFocus={() => setFocused(true)}
+        onFocus={() => {
+          setFocused(true);
+          onFocus?.();
+        }}
         onBlur={() => setFocused(false)}
         // Capped for the same reason Text caps: the box below grows by the
         // clamped factor, so unbounded glyph growth would overflow it.
