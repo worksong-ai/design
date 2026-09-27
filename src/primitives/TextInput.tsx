@@ -136,7 +136,7 @@ type FieldAccessibilityState = AccessibilityState & { invalid?: boolean };
  * autocapitalises, or a password field with no `textContentType`, are both
  * things a reviewer notices only after typing into a shipped build.
  */
-export type FieldKind = 'text' | 'email' | 'password' | 'newPassword' | 'oneTimeCode';
+export type FieldKind = 'text' | 'email' | 'password' | 'newPassword' | 'oneTimeCode' | 'identifier';
 
 interface FieldBehaviour {
   keyboardType: RNTextInputProps['keyboardType'];
@@ -189,6 +189,16 @@ const FIELD_BEHAVIOUR: Record<FieldKind, FieldBehaviour> = {
     autoCorrect: false,
     textContentType: 'oneTimeCode',
     autoComplete: 'one-time-code',
+  },
+  identifier: {
+    // A key or a slug the user types exactly (a project name, #378).
+    // Autocorrect "fixes" `atlas-v2` into words and autocapitalisation makes
+    // `Atlas` a different key from `atlas`, so both are off.
+    keyboardType: 'default',
+    autoCapitalize: 'none',
+    autoCorrect: false,
+    textContentType: 'none',
+    autoComplete: 'off',
   },
 };
 

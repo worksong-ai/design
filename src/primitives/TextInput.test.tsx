@@ -346,6 +346,15 @@ describe('field kind', () => {
     expect(field.props.autoCorrect).toBe(false);
   });
 
+  it('types an identifier exactly: no autocorrect, no capital first letter', () => {
+    render(<TextInput value="" onChangeText={jest.fn()} kind="identifier" testID="f" />);
+    const field = screen.getByTestId('f');
+    expect(field.props.keyboardType).toBe('default');
+    expect(field.props.autoCapitalize).toBe('none');
+    expect(field.props.autoCorrect).toBe(false);
+    expect(field.props.autoComplete).toBe('off');
+  });
+
   it('follows the scheme in force rather than always painting dark', () => {
     render(
       <SchemeProvider preference="light">
