@@ -25,6 +25,8 @@ import {
   TextInput as RNTextInput,
   View,
   type AccessibilityState,
+  type NativeSyntheticEvent,
+  type TextInputSelectionChangeEventData,
   type TextInputProps as RNTextInputProps,
 } from 'react-native';
 
@@ -84,6 +86,18 @@ export interface TextInputProps {
    * button under it clear of the keyboard; the focus ring is handled here.
    */
   onFocus?: () => void;
+  /**
+   * The field lost focus. For a composer whose inline suggestion list must
+   * close when the user taps away (#380); the focus ring is handled here.
+   */
+  onBlur?: () => void;
+  /**
+   * The caret or selection moved. Read-only on purpose: the field reports
+   * where the caret is (so a composer can complete the `@mention` the caret is
+   * inside, #380) but is never handed a controlled `selection`, which on iOS
+   * fights the user's own caret moves.
+   */
+  onSelectionChange?: (selection: { start: number; end: number }) => void;
   /**
    * What Return says and does. `next` keeps the keyboard up on submit, so a
    * form's `onSubmitEditing` can move focus to the following field (through
@@ -196,6 +210,8 @@ export function TextInput({
   fontScale,
   onSubmitEditing,
   onFocus,
+  onBlur,
+  onSelectionChange,
   returnKeyType,
   inputRef,
 }: TextInputProps) {
@@ -270,7 +286,16 @@ export function TextInput({
           setFocused(true);
           onFocus?.();
         }}
-        onBlur={() => setFocused(false)}
+        onBlur={() => {
+          setFocused(false);
+          onBlur?.();
+        }}
+        {...(onSelectionChange === undefined
+          ? {}
+          : {
+              onSelectionChange: (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) =>
+                onSelectionChange(event.nativeEvent.selection),
+            })}
         // Capped for the same reason Text caps: the box below grows by the
         // clamped factor, so unbounded glyph growth would overflow it.
         maxFontSizeMultiplier={maxFontScale[FIELD_TYPE]}

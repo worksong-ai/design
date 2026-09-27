@@ -43,6 +43,28 @@ describe('TextInput', () => {
     expect(onFocus).toHaveBeenCalledTimes(1);
   });
 
+  it('reports blur, so a composer can close its inline suggestions (#380)', () => {
+    const onBlur = jest.fn();
+    render(<TextInput value="" onChangeText={jest.fn()} onBlur={onBlur} testID="i" />);
+    fireEvent(screen.getByTestId('i'), 'focus');
+    fireEvent(screen.getByTestId('i'), 'blur');
+    expect(onBlur).toHaveBeenCalledTimes(1);
+    // The focus ring still clears: the callback is in addition to it.
+    expect(styleOf(screen.getByTestId('i')).borderColor).toBe(darkColors.separator);
+  });
+
+  it('reports where the caret moved, without controlling it (#380)', () => {
+    const onSelectionChange = jest.fn();
+    render(
+      <TextInput value="hi @ad" onChangeText={jest.fn()} onSelectionChange={onSelectionChange} testID="i" />,
+    );
+    fireEvent(screen.getByTestId('i'), 'selectionChange', {
+      nativeEvent: { selection: { start: 3, end: 3 } },
+    });
+    expect(onSelectionChange).toHaveBeenCalledWith({ start: 3, end: 3 });
+    expect(screen.getByTestId('i').props.selection).toBeUndefined();
+  });
+
   it('renders neither line when neither is given', () => {
     render(<TextInput value="x" onChangeText={jest.fn()} testID="i" />);
     expect(screen.queryByText('Required')).toBeNull();
