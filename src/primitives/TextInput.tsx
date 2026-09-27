@@ -53,6 +53,11 @@ export interface TextInputProps {
    * circle reads as two design languages in one row. It stays `multiline` —
    * the field still grows as a message does — but starts at one row instead of
    * two, because the bar it lives in must not eat the transcript.
+   *
+   * The corner radius is fixed at half the single-row height (see
+   * `pillRadius` below), not the "as round as the box allows" `radius.full`
+   * token — a growing multiline pill must read as a rounded rectangle once it
+   * passes one row, not balloon into an oval as height overtakes width (#407).
    */
   pill?: boolean;
   secureTextEntry?: boolean;
@@ -207,6 +212,30 @@ export function TextInput({
   const state: FieldAccessibilityState = { disabled: !editable, invalid };
   const behaviour = FIELD_BEHAVIOUR[kind];
 
+  /**
+   * The pill's corner radius (#407).
+   *
+   * `radius.full` (999) is a "however round the box allows" value, correct
+   * only because RN clips a corner radius to half of the box's *smaller*
+   * dimension. That is fine for a one-row pill, where height is the smaller
+   * side and the clip produces two neat semicircular ends. It stops being
+   * fine the moment the message wraps: this field is `multiline`, so height
+   * grows past width as lines are added, and the same clip then starts
+   * reading off *half the width* instead — a corner radius that keeps
+   * climbing as the box grows taller. Past the point width and height cross,
+   * the shape stops looking like a pill with a long straight run and starts
+   * looking like an oval, and a radius that large eats far enough into the
+   * box that the last line's glyphs land in the curve instead of clear of it.
+   *
+   * A pill's radius has to be a constant, not a function of the box's own
+   * size: half the single-row height it was designed for, computed the same
+   * way that height is (so it grows with Dynamic Type, never with content).
+   * At one row this is the exact number `radius.full` used to get clipped
+   * down to, so the pill looks identical; past one row it stops climbing,
+   * and the box reads as a normal rounded rectangle instead of ballooning.
+   */
+  const pillRadius = scaledMinHeight(MIN_HEIGHT.single, FIELD_TYPE, resolvedFontScale) / 2;
+
   return (
     <View style={styles.container}>
       {label === undefined ? null : (
@@ -263,7 +292,7 @@ export function TextInput({
               FIELD_TYPE,
               resolvedFontScale,
             ),
-            borderRadius: pill ? radius.full : radius.md,
+            borderRadius: pill ? pillRadius : radius.md,
             paddingHorizontal: pill ? space[4] : space[3],
             paddingVertical: multiline && !pill ? space[3] : space[2],
             // Android centres multiline text in the box without this.

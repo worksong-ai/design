@@ -3,8 +3,8 @@ import { createRef } from 'react';
 import type { TextInput as RNTextInput } from 'react-native';
 
 import { darkColors, lightColors } from '../tokens/colors.js';
-import { size } from '../tokens/space.js';
-import { maxFontScale } from '../tokens/typography.js';
+import { radius, size } from '../tokens/space.js';
+import { maxFontScale, scaledMinHeight } from '../tokens/typography.js';
 import { TextInput } from './TextInput.js';
 import { SchemeProvider } from './useScheme.js';
 
@@ -205,6 +205,70 @@ describe('TextInput', () => {
     expect(multi.minHeight as number).toBeGreaterThan(single);
     expect(multi.textAlignVertical).toBe('top');
     expect(screen.getByTestId('multi').props.multiline).toBe(true);
+  });
+
+  it('keeps the pill a fixed-radius rounded rectangle as it grows (#407)', () => {
+    // The bug: `pill` used to set `borderRadius: radius.full` (999) outright,
+    // relying on RN clipping it to half the box's smaller dimension. That
+    // clip tracks *height* once a multiline pill grows past one row, so the
+    // radius grew with every wrapped line — an oval that ballooned, clipping
+    // the last line near the bottom corner. The fix is a radius computed once
+    // from the single-row height, independent of how much text is typed.
+    //
+    // RNTL renders styles, not native layout, so it cannot reproduce the
+    // clip itself -- the component never varied `borderRadius` by `value`
+    // either before or after the fix, so `grown === empty` alone would also
+    // have held on the old code. The assertion that actually distinguishes
+    // the two is `empty` being the *exact* single-row value, not the raw
+    // `radius.full` token: that equality is what used to be true only for a
+    // one-row box, and is now true unconditionally.
+    // Pinned to `fontScale={1}` (as the other minHeight tests in this file
+    // do): the test host's own default `useWindowDimensions().fontScale` is
+    // not 1, so leaving it implicit would make the exact-value assertion
+    // below depend on wherever jest-expo's mock happens to sit.
+    render(<TextInput value="" onChangeText={jest.fn()} multiline pill fontScale={1} testID="empty" />);
+    const empty = styleOf(screen.getByTestId('empty')).borderRadius as number;
+
+    const fiveLines = 'one\ntwo\nthree\nfour\nfive and a much longer line that would wrap further still';
+    render(
+      <TextInput value={fiveLines} onChangeText={jest.fn()} multiline pill fontScale={1} testID="grown" />,
+    );
+    const grown = styleOf(screen.getByTestId('grown')).borderRadius as number;
+
+    expect(grown).toBe(empty);
+    // Pinned to the exact figure a one-row pill used to get clipped down to
+    // (half the single-row minimum height), not just "some smaller number".
+    expect(empty).toBe(scaledMinHeight(size.touchTarget, 'body', 1) / 2);
+    expect(empty).toBeLessThan(radius.full);
+  });
+
+  it('keeps the pill radius fixed for a Hebrew value too', () => {
+    // Direction is content-driven for this field (see the RTL tests above);
+    // confirm the radius fix does not accidentally key off direction as a
+    // proxy for length.
+    const hebrewLines = 'שלום\nעולם\nשורה שלישית ארוכה יותר שתעטוף';
+    render(
+      <TextInput value={hebrewLines} onChangeText={jest.fn()} multiline pill fontScale={1} testID="he" />,
+    );
+    const he = styleOf(screen.getByTestId('he')).borderRadius as number;
+
+    render(<TextInput value="" onChangeText={jest.fn()} multiline pill fontScale={1} testID="empty" />);
+    const empty = styleOf(screen.getByTestId('empty')).borderRadius as number;
+
+    expect(he).toBe(empty);
+  });
+
+  it('keeps the same pill radius across font scales as it was designed to clip to', () => {
+    // At one row, `pillRadius` must equal what `radius.full` used to get
+    // clipped down to (half the single-row height) so the pill's rest shape
+    // does not change — only its behaviour as it grows.
+    render(<TextInput value="" onChangeText={jest.fn()} multiline pill fontScale={2} testID="scaled" />);
+    const scaled = styleOf(screen.getByTestId('scaled')).borderRadius as number;
+
+    render(<TextInput value="" onChangeText={jest.fn()} multiline pill fontScale={1} testID="normal" />);
+    const normal = styleOf(screen.getByTestId('normal')).borderRadius as number;
+
+    expect(scaled).toBeGreaterThan(normal);
   });
 
   it('dims the text rather than the whole field when read-only', () => {
