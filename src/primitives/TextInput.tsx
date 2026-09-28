@@ -136,7 +136,7 @@ type FieldAccessibilityState = AccessibilityState & { invalid?: boolean };
  * autocapitalises, or a password field with no `textContentType`, are both
  * things a reviewer notices only after typing into a shipped build.
  */
-export type FieldKind = 'text' | 'email' | 'password' | 'newPassword' | 'oneTimeCode' | 'identifier';
+export type FieldKind = 'text' | 'email' | 'password' | 'newPassword' | 'oneTimeCode' | 'phone' | 'identifier';
 
 interface FieldBehaviour {
   keyboardType: RNTextInputProps['keyboardType'];
@@ -189,6 +189,15 @@ const FIELD_BEHAVIOUR: Record<FieldKind, FieldBehaviour> = {
     autoCorrect: false,
     textContentType: 'oneTimeCode',
     autoComplete: 'one-time-code',
+  },
+  phone: {
+    // Linking WhatsApp by number (#392). `phone-pad` has + and digits;
+    // `telephoneNumber` lets iOS offer the user's own number.
+    keyboardType: 'phone-pad',
+    autoCapitalize: 'none',
+    autoCorrect: false,
+    textContentType: 'telephoneNumber',
+    autoComplete: 'tel',
   },
   identifier: {
     // A key or a slug the user types exactly (a project name, #378).

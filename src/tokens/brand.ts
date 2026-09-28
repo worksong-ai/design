@@ -25,6 +25,14 @@ export const brandColors = {
     /** The Apple mark and the label drawn on it. */
     foreground: '#000000',
   },
+  /**
+   * WhatsApp linking QR (#392). A QR must be dark modules on a light quiet
+   * zone to scan reliably, whatever the app theme — so this is absolute
+   * white, not a scheme surface.
+   */
+  qr: {
+    background: '#FFFFFF',
+  },
 } as const;
 
 /**
