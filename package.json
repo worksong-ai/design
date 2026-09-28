@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Worksong design tokens and control primitives, shared by the Worksong app and bot mobile.",
+  "description": "Worksong shared design system — tokens and cross-platform (React Native / react-native-web) control primitives.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -26,13 +26,27 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test:tokens": "vitest run --passWithNoTests",
+    "test:primitives": "jest",
+    "test": "npm run test:tokens && npm run test:primitives",
+    "test:web": "jest --config jest.web.config.cjs"
   },
   "devDependencies": {
+    "@react-native/babel-preset": "0.85.3",
+    "@react-native/jest-preset": "0.85.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/react-native": "^13.2.0",
+    "@types/jest": "^29.5.14",
     "@types/react": "~19.2.2",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
     "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.85.3",
-    "typescript": "^5.7.2",
+    "react-native-web": "^0.20.0",
+    "react-test-renderer": "19.2.3",
+    "typescript": "~6.0.3",
     "vitest": "^2.1.8"
   },
   "peerDependencies": {
