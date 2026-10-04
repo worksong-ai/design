@@ -231,4 +231,28 @@ describe('Card', () => {
     );
     expect(styleOf(screen.getByTestId('c')).backgroundColor).toBe(lightColors.surface);
   });
+
+  it('clips a flush card of rows so the last hairline cannot poke past the corners', () => {
+    render(
+      <Card padding={0} testID="c">
+        <Text>row</Text>
+      </Card>,
+    );
+    expect(styleOf(screen.getByTestId('c')).overflow).toBe('hidden');
+  });
+
+  it('does not clip a padded card or one that casts a shadow', () => {
+    render(
+      <>
+        <Card testID="padded">
+          <Text>row</Text>
+        </Card>
+        <Card padding={0} elevation="low" testID="lifted">
+          <Text>row</Text>
+        </Card>
+      </>,
+    );
+    expect(styleOf(screen.getByTestId('padded')).overflow).toBeUndefined();
+    expect(styleOf(screen.getByTestId('lifted')).overflow).toBeUndefined();
+  });
 });
