@@ -7,7 +7,7 @@
  * own slot and the row is a fixed minimum height, so a badge appearing,
  * growing or disappearing cannot move the title's baseline or the buttons.
  *
- * A pushed screen passes `back` (a chevron before the title) and may add a
+ * `leading` (an avatar, say) sits before the title in its own slot. A pushed screen passes `back` (a chevron before the title) and may add a
  * `subtitle`; a root screen passes neither. Nothing else draws a screen title.
  *
  * Generic on purpose: no icons, routes or product copy. The glyph of each
@@ -41,6 +41,12 @@ export interface ScreenHeaderBack {
 
 export interface ScreenHeaderProps {
   title: string;
+  /**
+   * Sits before everything else in the title cluster (an avatar, a logo). It is
+   * a node, so the package stays free of product imagery; it is given its own
+   * slot and never changes the title's baseline or the actions.
+   */
+  leading?: ReactNode;
   /** A pushed screen's way back. Root (tab) screens leave it out. */
   back?: ScreenHeaderBack;
   /** One line under the title (the bot a screen is about). Never moves the buttons. */
@@ -49,12 +55,31 @@ export interface ScreenHeaderProps {
   badge?: ReactNode;
   actions: readonly ScreenHeaderAction[];
   testID?: string;
+  /** The title text's own id (default: none). The cluster keeps `screen-header-title`. */
+  titleTestID?: string;
+  /** Replaces the default `screen-header-subtitle` id on the subtitle text. */
+  subtitleTestID?: string;
 }
 
-export function ScreenHeader({ title, back, subtitle, badge, actions, testID }: ScreenHeaderProps) {
+export function ScreenHeader({
+  title,
+  leading,
+  back,
+  subtitle,
+  badge,
+  actions,
+  testID,
+  titleTestID,
+  subtitleTestID = 'screen-header-subtitle',
+}: ScreenHeaderProps) {
   return (
     <View style={styles.header} testID={testID}>
       <View style={styles.titleCluster} testID="screen-header-title">
+        {leading === undefined || leading === null ? null : (
+          <View style={styles.leadingSlot} testID="screen-header-leading">
+            {leading}
+          </View>
+        )}
         {back === undefined ? null : (
           <IconButton
             icon={back.icon}
@@ -64,11 +89,16 @@ export function ScreenHeader({ title, back, subtitle, badge, actions, testID }: 
           />
         )}
         <View style={styles.titleText}>
-          <Text variant="screenTitle" numberOfLines={1} accessibilityRole="header">
+          <Text
+            variant="screenTitle"
+            numberOfLines={1}
+            accessibilityRole="header"
+            {...(titleTestID === undefined ? {} : { testID: titleTestID })}
+          >
             {title}
           </Text>
           {subtitle === undefined ? null : (
-            <Text variant="caption" color="textSecondary" numberOfLines={1} testID="screen-header-subtitle">
+            <Text variant="caption" color="textSecondary" numberOfLines={1} testID={subtitleTestID}>
               {subtitle}
             </Text>
           )}
@@ -114,6 +144,7 @@ const styles = StyleSheet.create({
     gap: HEADER_LAYOUT.titleGap,
     flexShrink: 1,
   },
+  leadingSlot: { flexShrink: 0 },
   titleText: { flexShrink: 1 },
   badgeSlot: { flexShrink: 0 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: HEADER_LAYOUT.actionsGap },

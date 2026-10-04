@@ -12,7 +12,7 @@ canonical package instead of a hand-copied set of the same values.
 src/tokens/       colors, brand, space, text, typography, layout
 src/primitives/   Avatar, AppleSignInButton, Badge, Button, Card, IconButton,
                    ListRow, Sheet, Text, TextInput, useFontScale, useScheme
-src/patterns/     ScreenHeader, SearchHeader, FilterChips, NavRail, ShellFrame, formatBadgeCount
+src/patterns/     ScreenHeader, SearchHeader, FilterChips, NavRail, TabBar, ShellFrame, formatBadgeCount
 src/index.ts       re-exports all three
 ```
 
@@ -28,7 +28,8 @@ know nothing about a product's routes, data or icons; the app owns those.
   is the same row frame for a screen's own variant.
   Since v0.3.0 it also draws a pushed screen: `back` (a chevron before the title)
   and `subtitle`. **Every screen's title comes from here** -- a screen never
-  draws its own `screenTitle` row.
+  draws its own `screenTitle` row. Since v0.4.0 it also takes `leading` (a node
+  before everything else, e.g. an avatar) and `titleTestID` / `subtitleTestID`.
 - `SearchHeader` — the header's search state: a pill input and a close button in
   `ScreenHeader`'s frame, replacing the title row while a search is open.
 - `FilterChips` — horizontally scrolling chips; selecting changes colour, never
@@ -36,13 +37,17 @@ know nothing about a product's routes, data or icons; the app owns those.
 - `NavRail` — vertical rail: icon over a short label, leading active bar, an
   optional badge string. Items are `{ key, label, icon(state), badge?,
   accessibilityLabel?, testID }`; the app supplies them and the `onSelect`.
+- `TabBar` — the phone shell's bottom bar, from the same item model as
+  `NavRail` (v0.4.0). `{ items, activeKey, onSelect, onLongPress?, bottomInset? }`.
+  Selected is colour and glyph only, the badge floats, labels shrink to one line,
+  and the bottom inset is the bar's padding (`TAB_BAR_LAYOUT`).
 - `ShellFrame` — `layout`, `rail`, `list`, `main` slots (and which pane a
   tablet shows). No navigation state: the app decides the section, the open
   item and what `mobile` means (there it renders only `main`).
 - Layout tokens (`tokens/layout.ts`): `SCREEN_GUTTER`, `HEADER_LAYOUT`,
   `CHIP_LAYOUT`, `LIST_TOP`, `CONTENT_LAYOUT`, `ROW_LAYOUT`, `SECTION_LAYOUT`,
   and the shell's `shellLayoutFor`, `TABLET_MIN_WIDTH` (640),
-  `DESKTOP_MIN_WIDTH` (960), `RAIL_WIDTH`, `listPaneWidth`, `RAIL_LAYOUT`.
+  `DESKTOP_MIN_WIDTH` (960), `RAIL_WIDTH`, `listPaneWidth`, `RAIL_LAYOUT`, `TAB_BAR_LAYOUT`.
 
 The patterns import only `react`, `react-native` and this package: no
 `expo-router`, DOM, CSS or product state (`patterns/boundaries.test.ts` fails

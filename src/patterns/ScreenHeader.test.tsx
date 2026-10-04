@@ -105,4 +105,37 @@ describe('ScreenHeader', () => {
     expect(screen.getByTestId('screen-header-subtitle')).toBeTruthy();
     expect(flat('h')).toEqual(before);
   });
+  it('draws a leading node before the title in its own slot, without changing the frame', () => {
+    const { rerender } = render(<ScreenHeader title="Things" actions={actions()} testID="h" />);
+    const before = flat('h');
+    expect(screen.queryByTestId('screen-header-leading')).toBeNull();
+    rerender(
+      <ScreenHeader title="Things" actions={actions()} testID="h" leading={<RNText testID="avatar">A</RNText>} />,
+    );
+    expect(within(screen.getByTestId('screen-header-leading')).getByTestId('avatar')).toBeTruthy();
+    expect(flat('screen-header-leading').flexShrink).toBe(0);
+    expect(flat('h')).toEqual(before);
+  });
+
+  it('puts the leading node before the back chevron, and both before the title', () => {
+    render(
+      <ScreenHeader
+        title="Things"
+        leading={<RNText>L</RNText>}
+        back={{ icon: glyph('<'), onPress: jest.fn(), testID: 'bk' }}
+        actions={[]}
+      />,
+    );
+    const cluster = screen.getByTestId('screen-header-title');
+    const order = cluster.children.map((c) => (typeof c === 'string' ? c : c.props.testID ?? 'title'));
+    expect(order[0]).toBe('screen-header-leading');
+    expect(order[1]).toBe('bk');
+  });
+
+  it('lets a screen name the title and subtitle texts for its own tests', () => {
+    render(<ScreenHeader title="Things" subtitle="Ada" actions={[]} titleTestID="t" subtitleTestID="st" />);
+    expect(screen.getByTestId('t').props.children).toBe('Things');
+    expect(screen.getByTestId('st').props.children).toBe('Ada');
+    expect(screen.queryByTestId('screen-header-subtitle')).toBeNull();
+  });
 });
