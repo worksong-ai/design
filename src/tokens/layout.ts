@@ -127,3 +127,24 @@ export const RAIL_LAYOUT = {
   activeBarWidth: 3,
   badgeSize: 18,
 } as const;
+
+/**
+ * The bottom tab bar's geometry (the phone shell's counterpart to the rail).
+ * None of it depends on which tab is selected or on a badge: only colour and
+ * glyph do, so selecting a tab or a count growing to "99+" never moves a
+ * neighbour.
+ */
+export const TAB_BAR_LAYOUT = {
+  /** The iOS tab bar's content height, before the home-indicator inset. */
+  barHeight: 49,
+  /** The icon's box; the glyph is drawn at the same size. */
+  iconBox: size.iconLarge,
+  iconToLabelGap: 2,
+  /** One weight for every label, selected or not: a bolder face is wider and re-fits. */
+  labelWeight: '600',
+  /** Fixed, so the label box is identical whatever it says or however it fits. */
+  labelLineHeight: 14,
+  /** How far a label may follow Dynamic Type before it shrinks instead. */
+  labelMaxFontScale: 1.3,
+  badgeSize: 18,
+} as const;

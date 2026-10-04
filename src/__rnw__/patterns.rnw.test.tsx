@@ -8,6 +8,7 @@ import {
   NavRail,
   ScreenHeader,
   ShellFrame,
+  TabBar,
   formatBadgeCount,
   type NavRailItem,
 } from '../patterns/index.js';
@@ -165,6 +166,53 @@ describe('NavRail through react-native-web', () => {
     render(withScheme(preference, <NavRail items={railItems} activeKey="a" onSelect={() => {}} />));
     expect(getComputedStyle(byTestId('tab-a-active-bar')!).backgroundColor).toBe(rgb(scheme.accent));
     expect(getComputedStyle(byTestId('tab-a')!).backgroundColor).toBe(rgb(scheme.surface));
+  });
+});
+
+describe('TabBar through react-native-web', () => {
+  it('is a tablist of tabs with selected state and the accessible label', () => {
+    render(<TabBar items={railItems} activeKey="a" onSelect={() => {}} />);
+    expect(screen.getByRole('tablist')).toBeTruthy();
+    expect(screen.getAllByRole('tab').map((t) => t.getAttribute('aria-selected'))).toEqual(['true', 'false']);
+    expect(screen.getByRole('tab', { name: 'Chats, 3 unread' })).toBeTruthy();
+  });
+
+  it('reports a press, and is reachable and activatable by keyboard', () => {
+    const onSelect = jest.fn();
+    render(<TabBar items={railItems} activeKey="a" onSelect={onSelect} />);
+    const second = screen.getAllByRole('tab')[1]!;
+    expect(second.getAttribute('tabindex')).toBe('0');
+    fireEvent.click(second);
+    expect(onSelect).toHaveBeenCalledWith('b');
+  });
+
+  it('hides the badge from assistive tech and keeps every tab box the same with or without one', () => {
+    const box = (id: string) => {
+      const s = getComputedStyle(byTestId(id)!);
+      return [s.height, s.width, s.minHeight];
+    };
+    const { rerender } = render(<TabBar items={railItems} activeKey="a" onSelect={() => {}} />);
+    expect(byTestId('tab-a-badge')!.closest('[aria-hidden="true"]')).not.toBeNull();
+    const before = railItems.map((i) => box(i.testID));
+    rerender(
+      <TabBar items={railItems.map((i) => ({ ...i, badge: i.key === 'b' ? '99+' : null }))} activeKey="b" onSelect={() => {}} />,
+    );
+    expect(railItems.map((i) => box(i.testID))).toEqual(before);
+  });
+
+  it('truncates a long label to one line instead of growing the tab', () => {
+    render(<TabBar items={railItems} activeKey="a" onSelect={() => {}} />);
+    expect(getComputedStyle(byTestId('tab-b-label')!).whiteSpace).toBe('nowrap');
+  });
+
+  it.each([
+    ['dark', darkColors],
+    ['light', lightColors],
+  ] as const)('draws the bar and the active label in the %s scheme', (preference, scheme) => {
+    render(withScheme(preference, <TabBar items={railItems} activeKey="a" onSelect={() => {}} />));
+    expect(getComputedStyle(byTestId('tab-bar')!).backgroundColor).toBe(rgb(scheme.background));
+    expect(getComputedStyle(byTestId('tab-a-label')!).color).toBe(rgb(scheme.accent));
+    expect(getComputedStyle(byTestId('tab-b-label')!).color).not.toBe(rgb(scheme.accent));
   });
 });
 
