@@ -87,4 +87,22 @@ describe('ScreenHeader', () => {
     expect(screen.getByText('Things').props.maxFontSizeMultiplier).toBeGreaterThan(0);
     expect(screen.getByText('Things').props.maxFontSizeMultiplier).toBeLessThan(2.5);
   });
+
+  it('draws a back chevron before the title on a pushed screen, and not on a root one', () => {
+    const onBack = jest.fn();
+    const { rerender } = render(<ScreenHeader title="Things" actions={[]} />);
+    expect(screen.queryByLabelText('Back')).toBeNull();
+    rerender(<ScreenHeader title="Things" actions={[]} back={{ icon: glyph('<'), onPress: onBack, testID: 'bk' }} />);
+    fireEvent.press(screen.getByTestId('bk'));
+    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(within(screen.getByTestId('screen-header-title')).getByLabelText('Back')).toBeTruthy();
+  });
+
+  it('shows a subtitle under the title without changing the header frame', () => {
+    const { rerender } = render(<ScreenHeader title="Things" actions={actions()} testID="h" />);
+    const before = flat('h');
+    rerender(<ScreenHeader title="Things" subtitle="Ada" actions={actions()} testID="h" />);
+    expect(screen.getByTestId('screen-header-subtitle')).toBeTruthy();
+    expect(flat('h')).toEqual(before);
+  });
 });

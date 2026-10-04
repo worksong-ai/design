@@ -20,7 +20,7 @@ const importsOf = (text: string) => text.split('\n').filter((l) => /^\s*(import|
 describe('patterns boundaries', () => {
   it('finds the pattern sources it is meant to guard', () => {
     expect(sources.map((s) => s.f)).toEqual(
-      expect.arrayContaining(['ScreenHeader.tsx', 'FilterChips.tsx', 'NavRail.tsx', 'ShellFrame.tsx']),
+      expect.arrayContaining(['ScreenHeader.tsx', 'FilterChips.tsx', 'NavRail.tsx', 'ShellFrame.tsx', 'SearchHeader.tsx']),
     );
   });
 
