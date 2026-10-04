@@ -1,6 +1,6 @@
 {
   "name": "@worksong/design",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Worksong shared design system — tokens and cross-platform (React Native / react-native-web) control primitives.",
@@ -18,6 +18,10 @@
     "./primitives": {
       "types": "./dist/primitives/index.d.ts",
       "default": "./dist/primitives/index.js"
+    },
+    "./patterns": {
+      "types": "./dist/patterns/index.d.ts",
+      "default": "./dist/patterns/index.js"
     }
   },
   "files": [
