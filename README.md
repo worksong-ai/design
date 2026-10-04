@@ -12,11 +12,11 @@ canonical package instead of a hand-copied set of the same values.
 src/tokens/       colors, brand, space, text, typography, layout
 src/primitives/   Avatar, AppleSignInButton, Badge, Button, Card, IconButton,
                    ListRow, Sheet, Text, TextInput, useFontScale, useScheme
-src/patterns/     ScreenHeader, FilterChips, NavRail, ShellFrame, formatBadgeCount
+src/patterns/     ScreenHeader, SearchHeader, FilterChips, NavRail, ShellFrame, formatBadgeCount
 src/index.ts       re-exports all three
 ```
 
-### Patterns (v0.2.0)
+### Patterns (v0.3.0)
 
 Higher-level presentation extracted from Bot's Expo UI, which is the reference
 for how a Worksong root screen looks. They take generic props and callbacks and
@@ -26,6 +26,11 @@ know nothing about a product's routes, data or icons; the app owns those.
   on the right. `accessibilityLabel` is required on every action. The badge
   and the number of actions cannot move the title. `screenHeaderStyles.frame`
   is the same row frame for a screen's own variant.
+  Since v0.3.0 it also draws a pushed screen: `back` (a chevron before the title)
+  and `subtitle`. **Every screen's title comes from here** -- a screen never
+  draws its own `screenTitle` row.
+- `SearchHeader` — the header's search state: a pill input and a close button in
+  `ScreenHeader`'s frame, replacing the title row while a search is open.
 - `FilterChips` — horizontally scrolling chips; selecting changes colour, never
   geometry; a 44pt effective hit target; counts ride in the labels the app passes.
 - `NavRail` — vertical rail: icon over a short label, leading active bar, an
@@ -67,7 +72,7 @@ dependency pinned to a tag — never a floating branch:
 ```json
 {
   "dependencies": {
-    "@worksong/design": "github:worksong-ai/design#v0.2.0"
+    "@worksong/design": "github:worksong-ai/design#v0.3.0"
   }
 }
 ```

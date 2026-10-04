@@ -7,6 +7,9 @@
  * own slot and the row is a fixed minimum height, so a badge appearing,
  * growing or disappearing cannot move the title's baseline or the buttons.
  *
+ * A pushed screen passes `back` (a chevron before the title) and may add a
+ * `subtitle`; a root screen passes neither. Nothing else draws a screen title.
+ *
  * Generic on purpose: no icons, routes or product copy. The glyph of each
  * action arrives as a node (see `IconButton`) and `accessibilityLabel` is
  * required, because an icon-only action has no text for a screen reader.
@@ -27,21 +30,49 @@ export interface ScreenHeaderAction {
   testID: string;
 }
 
+/** The back chevron of a pushed screen, drawn before the title. */
+export interface ScreenHeaderBack {
+  icon: ReactNode;
+  /** Defaults to "Back". */
+  accessibilityLabel?: string;
+  onPress: () => void;
+  testID: string;
+}
+
 export interface ScreenHeaderProps {
   title: string;
+  /** A pushed screen's way back. Root (tab) screens leave it out. */
+  back?: ScreenHeaderBack;
+  /** One line under the title (the bot a screen is about). Never moves the buttons. */
+  subtitle?: string;
   /** Sits beside the title (e.g. "1 need you"). Never affects the title's position. */
   badge?: ReactNode;
   actions: readonly ScreenHeaderAction[];
   testID?: string;
 }
 
-export function ScreenHeader({ title, badge, actions, testID }: ScreenHeaderProps) {
+export function ScreenHeader({ title, back, subtitle, badge, actions, testID }: ScreenHeaderProps) {
   return (
     <View style={styles.header} testID={testID}>
       <View style={styles.titleCluster} testID="screen-header-title">
-        <Text variant="screenTitle" numberOfLines={1}>
-          {title}
-        </Text>
+        {back === undefined ? null : (
+          <IconButton
+            icon={back.icon}
+            accessibilityLabel={back.accessibilityLabel ?? 'Back'}
+            onPress={back.onPress}
+            testID={back.testID}
+          />
+        )}
+        <View style={styles.titleText}>
+          <Text variant="screenTitle" numberOfLines={1} accessibilityRole="header">
+            {title}
+          </Text>
+          {subtitle === undefined ? null : (
+            <Text variant="caption" color="textSecondary" numberOfLines={1} testID="screen-header-subtitle">
+              {subtitle}
+            </Text>
+          )}
+        </View>
         {badge === undefined || badge === null ? null : <View style={styles.badgeSlot}>{badge}</View>}
       </View>
       <View style={styles.actions} testID="screen-header-actions">
@@ -83,6 +114,7 @@ const styles = StyleSheet.create({
     gap: HEADER_LAYOUT.titleGap,
     flexShrink: 1,
   },
+  titleText: { flexShrink: 1 },
   badgeSlot: { flexShrink: 0 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: HEADER_LAYOUT.actionsGap },
 });

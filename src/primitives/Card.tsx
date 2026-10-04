@@ -18,7 +18,7 @@
  *     the author was not looking at. The token carries both.
  */
 import { Children, type ReactNode } from 'react';
-import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import type { ColorScheme } from '../tokens/colors.js';
 import {
@@ -84,11 +84,24 @@ export function Card({
     backgroundColor: scheme.surface,
     borderRadius: radius.lg,
     padding: space[padding],
+    // A flush card holds rows (`padding={0}`): clip them to the rounded corners
+    // so a row's hairline cannot poke past them. A shadow is not drawn on a
+    // view that clips, so a card that lifts keeps its edge unclipped.
+    ...(padding === 0 && elevationName === 'none' ? { overflow: 'hidden' as const } : {}),
     // Spread, not picked apart: half of these props are iOS-only and half are
     // Android-only, and taking one without the other is the bug.
     ...elevation[elevationName],
   };
-  const content = withTextChildren(children, scheme);
+  const inner = withTextChildren(children, scheme);
+  // Every row draws a hairline under itself, the last one included. Inside a
+  // flush card that line would sit on the card's own bottom edge, so the rows
+  // overhang by exactly its width and the card clips it.
+  const content =
+    padding === 0 && elevationName === 'none' ? (
+      <View style={{ marginBottom: -StyleSheet.hairlineWidth }}>{inner}</View>
+    ) : (
+      inner
+    );
 
   if (onPress === undefined) {
     return (
