@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Commit on main to release (default: main's head)
+        description: "Commit on main to release (empty: main's head)"
         required: false
         default: ''
 
