@@ -73,7 +73,10 @@ dependency pinned to a tag — never a floating branch:
 ```
 
 Bump the pinned tag deliberately when you want a new release. New releases
-are tagged `vX.Y.Z` off `main` once CI is green.
+are tagged `vX.Y.Z` off `main` once CI is green: bump `version` in
+`package.json`, merge, then run Actions -> Release (it re-runs the checks, tags
+main at that version and cuts the GitHub release; it refuses a version that is
+already tagged).
 
 ## Developing
 
