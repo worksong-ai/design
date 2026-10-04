@@ -9,11 +9,40 @@ canonical package instead of a hand-copied set of the same values.
 ## What's here
 
 ```
-src/tokens/       colors, brand, space, text, typography
+src/tokens/       colors, brand, space, text, typography, layout
 src/primitives/   Avatar, AppleSignInButton, Badge, Button, Card, IconButton,
                    ListRow, Sheet, Text, TextInput, useFontScale, useScheme
-src/index.ts       re-exports both
+src/patterns/     ScreenHeader, FilterChips, NavRail, ShellFrame, formatBadgeCount
+src/index.ts       re-exports all three
 ```
+
+### Patterns (v0.2.0)
+
+Higher-level presentation extracted from Bot's Expo UI, which is the reference
+for how a Worksong root screen looks. They take generic props and callbacks and
+know nothing about a product's routes, data or icons; the app owns those.
+
+- `ScreenHeader` — large root title, optional inline badge, icon-button actions
+  on the right. `accessibilityLabel` is required on every action. The badge
+  and the number of actions cannot move the title. `screenHeaderStyles.frame`
+  is the same row frame for a screen's own variant.
+- `FilterChips` — horizontally scrolling chips; selecting changes colour, never
+  geometry; a 44pt effective hit target; counts ride in the labels the app passes.
+- `NavRail` — vertical rail: icon over a short label, leading active bar, an
+  optional badge string. Items are `{ key, label, icon(state), badge?,
+  accessibilityLabel?, testID }`; the app supplies them and the `onSelect`.
+- `ShellFrame` — `layout`, `rail`, `list`, `main` slots (and which pane a
+  tablet shows). No navigation state: the app decides the section, the open
+  item and what `mobile` means (there it renders only `main`).
+- Layout tokens (`tokens/layout.ts`): `SCREEN_GUTTER`, `HEADER_LAYOUT`,
+  `CHIP_LAYOUT`, `LIST_TOP`, `CONTENT_LAYOUT`, `ROW_LAYOUT`, `SECTION_LAYOUT`,
+  and the shell's `shellLayoutFor`, `TABLET_MIN_WIDTH` (640),
+  `DESKTOP_MIN_WIDTH` (960), `RAIL_WIDTH`, `listPaneWidth`, `RAIL_LAYOUT`.
+
+The patterns import only `react`, `react-native` and this package: no
+`expo-router`, DOM, CSS or product state (`patterns/boundaries.test.ts` fails
+on a stray import). On web, selected/hidden state is also set as `aria-*`,
+because `react-native-web` ignores `accessibilityState`.
 
 Same shape as it had inside `bot`. `AppleSignInButton` aside, the primitives
 only use core `react-native` components (`View`, `Pressable`, `Text`,
@@ -38,7 +67,7 @@ dependency pinned to a tag — never a floating branch:
 ```json
 {
   "dependencies": {
-    "@worksong/design": "github:worksong-ai/design#v0.1.0"
+    "@worksong/design": "github:worksong-ai/design#v0.2.0"
   }
 }
 ```

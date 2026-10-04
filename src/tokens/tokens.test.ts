@@ -8,7 +8,22 @@ import {
   changeColor,
   type ColorScheme,
 } from './colors.js';
-import { elevation, pressedOpacity, radius, size, space } from './space.js';
+import {
+  CHIP_LAYOUT,
+  CONTENT_LAYOUT,
+  DESKTOP_MIN_WIDTH,
+  HEADER_LAYOUT,
+  LIST_TOP,
+  MAIN_PANE_MIN_WIDTH,
+  RAIL_WIDTH,
+  ROW_LAYOUT,
+  SCREEN_GUTTER,
+  SECTION_LAYOUT,
+  TABLET_MIN_WIDTH,
+  listPaneWidth,
+  shellLayoutFor,
+} from './layout.js';
+import { elevation, pressedOpacity, radius, screenPadding, size, space } from './space.js';
 import {
   clampFontScale,
   maxFontScale,
@@ -294,5 +309,73 @@ describe('directionStyle', () => {
   it('agrees with alignFor', () => {
     expect(directionStyle('rtl').textAlign).toBe(alignFor('rtl'));
     expect(directionStyle('ltr').textAlign).toBe(alignFor('ltr'));
+  });
+});
+
+describe('screen layout tokens', () => {
+  it('is built from the spacing scale, with one gutter everywhere', () => {
+    expect(SCREEN_GUTTER).toBe(screenPadding);
+    expect(HEADER_LAYOUT.paddingHorizontal).toBe(SCREEN_GUTTER);
+    expect(CHIP_LAYOUT.rowPaddingHorizontal).toBe(SCREEN_GUTTER);
+    expect(CONTENT_LAYOUT.paddingHorizontal).toBe(SCREEN_GUTTER);
+  });
+
+  it('keeps the values the Bot root screens shipped with', () => {
+    expect(HEADER_LAYOUT).toMatchObject({
+      paddingVertical: space[3],
+      gap: space[2],
+      actionsGap: space[2],
+      titleGap: space[3],
+      minHeight: size.touchTarget,
+    });
+    expect(CHIP_LAYOUT).toMatchObject({ gap: space[2], paddingVertical: space[2], rowPaddingBottom: space[2] });
+    expect(CONTENT_LAYOUT.gap).toBe(space[3]);
+    expect(LIST_TOP).toBe(space[2]);
+  });
+
+  it('gives a chip the same outer width selected or not (padding + border = space[3])', () => {
+    expect(CHIP_LAYOUT.paddingHorizontal + CHIP_LAYOUT.borderWidth).toBe(space[3]);
+    expect(CHIP_LAYOUT.borderWidth).toBeGreaterThan(0);
+  });
+
+  it("restates ListRow's frame, so a custom row can share its grid", () => {
+    expect(ROW_LAYOUT).toEqual({
+      minHeight: size.row,
+      paddingHorizontal: screenPadding,
+      paddingVertical: space[2],
+      columnGap: space[3],
+    });
+    expect(SECTION_LAYOUT.paddingHorizontal).toBe(ROW_LAYOUT.paddingHorizontal);
+  });
+});
+
+describe('shell breakpoints', () => {
+  it.each([
+    [0, 'mobile'],
+    [390, 'mobile'],
+    [TABLET_MIN_WIDTH - 1, 'mobile'],
+    [TABLET_MIN_WIDTH, 'tablet'],
+    [800, 'tablet'],
+    [DESKTOP_MIN_WIDTH - 1, 'tablet'],
+    [DESKTOP_MIN_WIDTH, 'desktop'],
+    [1440, 'desktop'],
+  ] as const)('%d px is %s', (width, layout) => {
+    expect(shellLayoutFor(width)).toBe(layout);
+  });
+
+  it('falls back to the phone layout for a width it cannot trust', () => {
+    expect(shellLayoutFor(Number.NaN)).toBe('mobile');
+    expect(shellLayoutFor(Number.POSITIVE_INFINITY)).toBe('mobile');
+  });
+
+  it('widens the list pane on a large window only', () => {
+    expect(listPaneWidth(DESKTOP_MIN_WIDTH)).toBe(340);
+    expect(listPaneWidth(1279)).toBe(340);
+    expect(listPaneWidth(1280)).toBe(380);
+  });
+
+  it('leaves the main pane a usable width at the narrowest desktop window', () => {
+    expect(MAIN_PANE_MIN_WIDTH).toBe(DESKTOP_MIN_WIDTH - RAIL_WIDTH - listPaneWidth(DESKTOP_MIN_WIDTH));
+    expect(MAIN_PANE_MIN_WIDTH).toBeGreaterThanOrEqual(480);
   });
 });
