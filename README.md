@@ -2,7 +2,7 @@
 
 Worksong's shared design system — design tokens and cross-platform (React
 Native / `react-native-web`) control primitives. Extracted from
-[`worksong-ai/bot`](https://github.com/worksong-ai/bot)'s `packages/design`
+[`worksong-ai/worksong`](https://github.com/worksong-ai/worksong)'s `packages/design`
 (with its original commit history) so every Worksong product depends on one
 canonical package instead of a hand-copied set of the same values.
 
@@ -61,7 +61,7 @@ or native-module APIs.
 
 ## Who consumes this
 
-- **`worksong-ai/bot`** — today, via a local `packages/design` copy. A
+- **`worksong-ai/worksong`** — today, via a local `packages/design` copy. A
   follow-up PR in that repo will remove the local copy and add this package
   as a git dependency (a no-op rename since the package name is unchanged).
 - **`worksong-ai/Boardy`** — `mobile/` will depend on this directly instead

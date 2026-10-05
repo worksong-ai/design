@@ -2,7 +2,7 @@
  * Screen layout and shell tokens: the grid every list-style root screen sits on
  * and the breakpoints of the rail / list / main frame.
  *
- * Extracted from `worksong-ai/bot` (`ui/screenLayout.ts`,
+ * Extracted from `worksong-ai/worksong` (`ui/screenLayout.ts`,
  * `shell/desktop/layoutMode.ts`) so two Worksong apps that use the same
  * root-list pattern line up pixel for pixel without re-deriving the geometry.
  * `ScreenHeader`, `FilterChips`, `NavRail` and `ShellFrame` read these; so can
