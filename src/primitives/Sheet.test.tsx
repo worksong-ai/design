@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import { darkColors, lightColors } from '../tokens/colors.js';
+import { SHEET_MAX_WIDTH } from '../tokens/layout.js';
 import { radius, size } from '../tokens/space.js';
 import { Sheet } from './Sheet.js';
 import { Text } from './Text.js';
@@ -17,6 +18,20 @@ function styleOf(element: { props: { style?: unknown } }): Record<string, unknow
 }
 
 describe('Sheet', () => {
+  it('is a centred column on a wide window and the full width on a phone', () => {
+    render(
+      <Sheet visible onClose={jest.fn()}>
+        <Text>body</Text>
+      </Sheet>,
+    );
+    // width 100% capped at SHEET_MAX_WIDTH: a phone is narrower than the cap, an iPad is wider.
+    expect(styleOf(screen.getByTestId('sheet-panel'))).toMatchObject({
+      width: '100%',
+      maxWidth: SHEET_MAX_WIDTH,
+      alignSelf: 'center',
+    });
+  });
+
   it('renders its children when visible', () => {
     render(
       <Sheet visible onClose={jest.fn()} testID="s">
