@@ -30,6 +30,9 @@ know nothing about a product's routes, data or icons; the app owns those.
   and `subtitle`. **Every screen's title comes from here** -- a screen never
   draws its own `screenTitle` row. Since v0.4.0 it also takes `leading` (a node
   before everything else, e.g. an avatar) and `titleTestID` / `subtitleTestID`.
+- `Sheet` — since v0.5.0 its panel is at most `SHEET_MAX_WIDTH` (560) wide and
+  centred, so on an iPad or a browser window a sheet is a column at the bottom,
+  not a bar across the screen. A phone is narrower than the cap and unchanged.
 - `SearchHeader` — the header's search state: a pill input and a close button in
   `ScreenHeader`'s frame, replacing the title row while a search is open.
 - `FilterChips` — horizontally scrolling chips; selecting changes colour, never

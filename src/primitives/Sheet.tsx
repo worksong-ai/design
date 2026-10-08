@@ -22,6 +22,7 @@ import type { ReactNode } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 
 import type { ColorScheme } from '../tokens/colors.js';
+import { SHEET_MAX_WIDTH } from '../tokens/layout.js';
 import { radius, size, space } from '../tokens/space.js';
 import { scaledMinHeight } from '../tokens/typography.js';
 import { Text } from './Text.js';
@@ -116,6 +117,11 @@ const styles = StyleSheet.create({
   // nothing and leave no way out but the back button, which iOS has not got.
   backdrop: { flex: 1, minHeight: size.touchTarget },
   panel: {
+    // A phone's window is narrower than the cap, so nothing changes there; a
+    // wide window gets a centred column rather than a bar across the screen.
+    width: '100%',
+    maxWidth: SHEET_MAX_WIDTH,
+    alignSelf: 'center',
     paddingHorizontal: space[4],
     paddingTop: space[4],
     // Clears the home indicator. This package cannot depend on

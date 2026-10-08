@@ -106,6 +106,13 @@ export function shellLayoutFor(width: number): ShellLayout {
   return 'mobile';
 }
 
+/**
+ * The widest a bottom `Sheet` gets. On a phone the sheet is the window's width
+ * (it never reaches this); on an iPad or a browser window it stays a readable
+ * column at the bottom centre instead of a bar across 1300 points.
+ */
+export const SHEET_MAX_WIDTH = 560;
+
 /** The rail's width. Icon over a short label, as in a phone tab bar. */
 export const RAIL_WIDTH = 92;
 
