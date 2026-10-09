@@ -7,7 +7,7 @@
  * rename-modal, with a different scrim in each and no agreement on whether the
  * hardware back button does anything.
  *
- * Two things it guarantees that a hand-rolled Modal does not:
+ * Three things it guarantees that a hand-rolled Modal does not:
  *
  *   - **A press inside never dismisses.** The backdrop is a *sibling* of the
  *     panel rather than its parent, so there is no bubbling path from the
@@ -17,9 +17,23 @@
  *   - **Android Back closes it.** `onRequestClose` is the only route the
  *     hardware button has into a Modal, and a sheet that ignores Back is a
  *     trapped user.
+ *   - **It never grows past the screen.** The panel is capped at
+ *     `SHEET_MAX_HEIGHT_RATIO` of the window and its body scrolls inside the
+ *     cap, under a header that stays put. Without the cap a sheet with more
+ *     rows than the window is tall (the chat's More menu on a phone held
+ *     sideways) grew off the top: the title and the first row were cut off
+ *     and nothing could scroll them back.
  */
 import type { ReactNode } from 'react';
-import { Modal, type ModalProps, Pressable, StyleSheet, View } from 'react-native';
+import {
+  Modal,
+  type ModalProps,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 
 import type { ColorScheme } from '../tokens/colors.js';
 import { radius, size, space } from '../tokens/space.js';
@@ -36,6 +50,15 @@ export const SHEET_ORIENTATIONS: NonNullable<ModalProps['supportedOrientations']
   'landscape-left',
   'landscape-right',
 ];
+
+/** A sheet is never taller than this share of the window; the rest is scrim. */
+export const SHEET_MAX_HEIGHT_RATIO = 0.9;
+
+/**
+ * Widest a sheet gets. A bottom sheet stretched across an iPad or a browser
+ * window is a long flat strip, so past this width it stays a centred card.
+ */
+export const SHEET_MAX_WIDTH = 560;
 
 export interface SheetProps {
   visible: boolean;
@@ -63,6 +86,8 @@ export function Sheet({
   const scheme = useResolvedScheme(schemeOverride);
   // The prop wins when given (tests pin a scale); otherwise the device decides.
   const resolvedFontScale = useResolvedFontScale(fontScale);
+  const { height: windowHeight } = useWindowDimensions();
+  const maxHeight = Math.floor(windowHeight * SHEET_MAX_HEIGHT_RATIO);
   return (
     <Modal
       testID="sheet-modal"
@@ -97,6 +122,7 @@ export function Sheet({
           style={[
             styles.panel,
             {
+              maxHeight,
               backgroundColor: scheme.surface,
               borderTopLeftRadius: radius.xl,
               borderTopRightRadius: radius.xl,
@@ -116,7 +142,17 @@ export function Sheet({
               </Text>
             </View>
           )}
-          {children}
+          <ScrollView
+            testID="sheet-body"
+            style={styles.body}
+            // Rows inside take their own taps even while a keyboard is up.
+            keyboardShouldPersistTaps="handled"
+            // A short sheet is not a scroll view: no rubber-banding, no bar.
+            alwaysBounceVertical={false}
+            showsVerticalScrollIndicator={false}
+          >
+            {children}
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -129,11 +165,17 @@ const styles = StyleSheet.create({
   // nothing and leave no way out but the back button, which iOS has not got.
   backdrop: { flex: 1, minHeight: size.touchTarget },
   panel: {
+    width: '100%',
+    maxWidth: SHEET_MAX_WIDTH,
+    alignSelf: 'center',
     paddingHorizontal: space[4],
     paddingTop: space[4],
     // Clears the home indicator. This package cannot depend on
     // safe-area-context, so the inset is a constant rather than a measurement.
     paddingBottom: space[8],
   },
+  // `flexShrink` lets the body give way to the cap above; `flexGrow: 0` keeps a
+  // short body at its own height instead of stretching the panel.
+  body: { flexGrow: 0, flexShrink: 1 },
   header: { justifyContent: 'center', paddingBottom: space[2] },
 });
