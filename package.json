@@ -1,6 +1,6 @@
 {
   "name": "@worksong/design",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "private": true,
   "type": "module",
   "description": "Worksong shared design system — tokens and cross-platform (React Native / react-native-web) control primitives.",

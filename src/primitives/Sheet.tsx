@@ -7,7 +7,7 @@
  * rename-modal, with a different scrim in each and no agreement on whether the
  * hardware back button does anything.
  *
- * Three things it guarantees that a hand-rolled Modal does not:
+ * Four things it guarantees that a hand-rolled Modal does not:
  *
  *   - **A press inside never dismisses.** The backdrop is a *sibling* of the
  *     panel rather than its parent, so there is no bubbling path from the
@@ -23,6 +23,10 @@
  *     rows than the window is tall (the chat's More menu on a phone held
  *     sideways) grew off the top: the title and the first row were cut off
  *     and nothing could scroll them back.
+ *   - **The whole scrim dismisses.** The backdrop fills the screen *behind*
+ *     the panel, so a tap beside a centred card on an iPad or a desktop
+ *     window closes it, not only a tap above it (a flex child above the panel
+ *     left the strips either side of a 560 pt card dead).
  */
 import type { ReactNode } from 'react';
 import {
@@ -60,6 +64,9 @@ export const SHEET_MAX_HEIGHT_RATIO = 0.9;
  */
 export const SHEET_MAX_WIDTH = 560;
 
+/** Diameter of the small close button in a sheet's title row. */
+const CLOSE_SIZE = 32;
+
 export interface SheetProps {
   visible: boolean;
   onClose: () => void;
@@ -69,6 +76,11 @@ export interface SheetProps {
   testID?: string;
   /** Tap the scrim to dismiss. Turn off for a sheet that must be answered. */
   dismissOnBackdropPress?: boolean;
+  /**
+   * A small X at the end of the title row. On by default for a titled sheet
+   * that can be dismissed; a sheet that must be answered never shows it.
+   */
+  showCloseButton?: boolean;
   /** OS font scale, for the header's minimum height. */
   fontScale?: number;
 }
@@ -81,6 +93,7 @@ export function Sheet({
   scheme: schemeOverride,
   testID,
   dismissOnBackdropPress = true,
+  showCloseButton = true,
   fontScale,
 }: SheetProps) {
   const scheme = useResolvedScheme(schemeOverride);
@@ -115,7 +128,9 @@ export function Sheet({
           testID="sheet-backdrop"
           disabled={!dismissOnBackdropPress}
           onPress={onClose}
-          style={styles.backdrop}
+          // Behind the panel and over the whole screen, so the strips either
+          // side of a centred card close the sheet too.
+          style={StyleSheet.absoluteFill}
         />
         <View
           testID="sheet-panel"
@@ -137,9 +152,22 @@ export function Sheet({
                 { minHeight: scaledMinHeight(size.touchTarget, 'sectionTitle', resolvedFontScale) },
               ]}
             >
-              <Text variant="sectionTitle" scheme={scheme}>
+              <Text variant="sectionTitle" scheme={scheme} style={styles.title}>
                 {title}
               </Text>
+              {showCloseButton && dismissOnBackdropPress ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Close sheet"
+                  testID="sheet-close"
+                  onPress={onClose}
+                  hitSlop={space[2]}
+                  style={[styles.close, { backgroundColor: scheme.surfaceElevated }]}
+                >
+                  <View style={[styles.bar, styles.barA, { backgroundColor: scheme.textSecondary }]} />
+                  <View style={[styles.bar, styles.barB, { backgroundColor: scheme.textSecondary }]} />
+                </Pressable>
+              ) : null}
             </View>
           )}
           <ScrollView
@@ -161,9 +189,6 @@ export function Sheet({
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'flex-end' },
-  // The floor matters: tall content would otherwise shrink the backdrop to
-  // nothing and leave no way out but the back button, which iOS has not got.
-  backdrop: { flex: 1, minHeight: size.touchTarget },
   panel: {
     width: '100%',
     maxWidth: SHEET_MAX_WIDTH,
@@ -177,5 +202,20 @@ const styles = StyleSheet.create({
   // `flexShrink` lets the body give way to the cap above; `flexGrow: 0` keeps a
   // short body at its own height instead of stretching the panel.
   body: { flexGrow: 0, flexShrink: 1 },
-  header: { justifyContent: 'center', paddingBottom: space[2] },
+  header: { flexDirection: 'row', alignItems: 'center', paddingBottom: space[2] },
+  title: { flex: 1 },
+  // Small on purpose: the title row is the sheet's, and the scrim is the big
+  // way out. `hitSlop` keeps the touch target at the 44 pt floor.
+  close: {
+    width: CLOSE_SIZE,
+    height: CLOSE_SIZE,
+    borderRadius: CLOSE_SIZE / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginStart: space[3],
+  },
+  // Two crossed bars rather than a glyph: no font or icon dependency.
+  bar: { position: 'absolute', width: 14, height: 2, borderRadius: 1 },
+  barA: { transform: [{ rotate: '45deg' }] },
+  barB: { transform: [{ rotate: '-45deg' }] },
 });

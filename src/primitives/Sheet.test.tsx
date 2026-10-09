@@ -199,15 +199,20 @@ describe('Sheet', () => {
     });
   });
 
-  it('keeps a tappable strip of backdrop however tall the content is', () => {
+  it('keeps a way out however tall the content is', () => {
+    // The panel never passes 90% of the window, and the backdrop fills the
+    // whole screen behind it, so some scrim is always left to tap.
     render(
       <Sheet visible onClose={jest.fn()} testID="s">
         <Text>body</Text>
       </Sheet>,
     );
 
-    const { minHeight } = styleOf(screen.getByTestId('sheet-backdrop'));
-    expect(minHeight as number).toBeGreaterThanOrEqual(size.touchTarget);
+    expect(SHEET_MAX_HEIGHT_RATIO).toBeLessThan(1);
+    expect(styleOf(screen.getByTestId('sheet-backdrop')).position).toBe('absolute');
+    expect(styleOf(screen.getByTestId('sheet-panel')).maxHeight).toBeLessThan(
+      Dimensions.get('window').height,
+    );
   });
 
   it('grows the header with the OS font scale', () => {
@@ -274,6 +279,59 @@ describe('Sheet', () => {
       const panel = styleOf(screen.getByTestId('sheet-panel'));
       expect(panel.maxWidth).toBe(SHEET_MAX_WIDTH);
       expect(panel.alignSelf).toBe('center');
+    });
+  });
+
+  describe('closing', () => {
+    it('has a small X in the title row that closes it', () => {
+      const onClose = jest.fn();
+      render(
+        <Sheet visible onClose={onClose} title="This chat" testID="s">
+          <Text>body</Text>
+        </Sheet>,
+      );
+      fireEvent.press(screen.getByTestId('sheet-close'));
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('has no X without a title, when it must be answered, or when switched off', () => {
+      const { rerender } = render(
+        <Sheet visible onClose={jest.fn()} testID="s">
+          <Text>body</Text>
+        </Sheet>,
+      );
+      expect(screen.queryByTestId('sheet-close')).toBeNull();
+
+      rerender(
+        <Sheet visible onClose={jest.fn()} title="Delete?" dismissOnBackdropPress={false} testID="s">
+          <Text>body</Text>
+        </Sheet>,
+      );
+      expect(screen.queryByTestId('sheet-close')).toBeNull();
+
+      rerender(
+        <Sheet visible onClose={jest.fn()} title="Pick" showCloseButton={false} testID="s">
+          <Text>body</Text>
+        </Sheet>,
+      );
+      expect(screen.queryByTestId('sheet-close')).toBeNull();
+    });
+
+    it('covers the whole screen with the backdrop, behind the panel', () => {
+      // A flex child above a centred 560 pt card left the strips either side of
+      // it dead (Danel, 2026-10-09: tapping beside the menu did not close it).
+      render(
+        <Sheet visible onClose={jest.fn()} testID="s">
+          <Text>body</Text>
+        </Sheet>,
+      );
+      const backdrop = styleOf(screen.getByTestId('sheet-backdrop'));
+      expect(backdrop).toMatchObject({ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 });
+      const container = screen.getByTestId('s');
+      const children = (container.props.children as unknown[]).filter(Boolean);
+      // Backdrop first, panel after: later siblings draw on top.
+      expect((children[0] as { props: { testID: string } }).props.testID).toBe('sheet-backdrop');
+      expect((children[1] as { props: { testID: string } }).props.testID).toBe('sheet-panel');
     });
   });
 });
