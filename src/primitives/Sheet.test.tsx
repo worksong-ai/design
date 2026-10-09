@@ -17,6 +17,20 @@ function styleOf(element: { props: { style?: unknown } }): Record<string, unknow
 }
 
 describe('Sheet', () => {
+  it('lets the device stay in landscape while it is open', () => {
+    render(
+      <Sheet visible onClose={jest.fn()}>
+        <Text>body</Text>
+      </Sheet>,
+    );
+
+    // RN's iOS Modal defaults to portrait only, which rotated a phone held
+    // sideways back to portrait whenever a sheet opened.
+    expect(screen.getByTestId('sheet-modal').props.supportedOrientations).toEqual(
+      expect.arrayContaining(['portrait', 'landscape', 'landscape-left', 'landscape-right']),
+    );
+  });
+
   it('renders its children when visible', () => {
     render(
       <Sheet visible onClose={jest.fn()} testID="s">

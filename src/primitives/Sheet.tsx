@@ -19,7 +19,7 @@
  *     trapped user.
  */
 import type { ReactNode } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, type ModalProps, Pressable, StyleSheet, View } from 'react-native';
 
 import type { ColorScheme } from '../tokens/colors.js';
 import { radius, size, space } from '../tokens/space.js';
@@ -27,6 +27,15 @@ import { scaledMinHeight } from '../tokens/typography.js';
 import { Text } from './Text.js';
 import { useResolvedFontScale } from './useFontScale.js';
 import { useResolvedScheme } from './useScheme.js';
+
+/** Every orientation, so a sheet never forces the screen underneath to turn. */
+export const SHEET_ORIENTATIONS: NonNullable<ModalProps['supportedOrientations']> = [
+  'portrait',
+  'portrait-upside-down',
+  'landscape',
+  'landscape-left',
+  'landscape-right',
+];
 
 export interface SheetProps {
   visible: boolean;
@@ -62,6 +71,10 @@ export function Sheet({
       transparent
       animationType="slide"
       onRequestClose={onClose}
+      // React Native's iOS Modal supports portrait only unless told otherwise,
+      // so opening a sheet on a phone held sideways rotated the whole app to
+      // portrait for as long as the sheet was up (TestFlight 2.0.0 (5)).
+      supportedOrientations={SHEET_ORIENTATIONS}
     >
       <View
         // Without this, VoiceOver keeps walking the screen underneath as
