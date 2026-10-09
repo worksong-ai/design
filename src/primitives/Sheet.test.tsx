@@ -1,8 +1,9 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { Dimensions } from 'react-native';
 
 import { darkColors, lightColors } from '../tokens/colors.js';
 import { radius, size } from '../tokens/space.js';
-import { Sheet } from './Sheet.js';
+import { SHEET_MAX_HEIGHT_RATIO, SHEET_MAX_WIDTH, Sheet } from './Sheet.js';
 import { Text } from './Text.js';
 import { SchemeProvider } from './useScheme.js';
 
@@ -240,5 +241,39 @@ describe('Sheet', () => {
     );
     expect(styleOf(screen.getByTestId('s')).backgroundColor).toBe(lightColors.scrim);
     expect(styleOf(screen.getByTestId('sheet-panel')).backgroundColor).toBe(lightColors.surface);
+  });
+
+  describe('taller than the window', () => {
+    it('caps the panel and scrolls the body under a fixed header', () => {
+      // A phone held sideways is ~390 pt tall; ten two-line rows are not.
+      jest.spyOn(Dimensions, 'get').mockReturnValue({ width: 852, height: 393, scale: 3, fontScale: 1 });
+      render(
+        <Sheet visible onClose={jest.fn()} title="This chat" testID="s">
+          <Text>row</Text>
+        </Sheet>,
+      );
+
+      const panel = styleOf(screen.getByTestId('sheet-panel'));
+      expect(panel.maxHeight).toBe(Math.floor(393 * SHEET_MAX_HEIGHT_RATIO));
+
+      // The title is a sibling of the scrolling body, so it cannot scroll off.
+      const body = screen.getByTestId('sheet-body');
+      expect(screen.getByTestId('sheet-header')).toBeTruthy();
+      expect(body.props.keyboardShouldPersistTaps).toBe('handled');
+      expect(styleOf(body).flexShrink).toBe(1);
+      expect(styleOf(body).flexGrow).toBe(0);
+      jest.restoreAllMocks();
+    });
+
+    it('stays a card on a wide window instead of a full-width strip', () => {
+      render(
+        <Sheet visible onClose={jest.fn()} testID="s">
+          <Text>row</Text>
+        </Sheet>,
+      );
+      const panel = styleOf(screen.getByTestId('sheet-panel'));
+      expect(panel.maxWidth).toBe(SHEET_MAX_WIDTH);
+      expect(panel.alignSelf).toBe('center');
+    });
   });
 });
